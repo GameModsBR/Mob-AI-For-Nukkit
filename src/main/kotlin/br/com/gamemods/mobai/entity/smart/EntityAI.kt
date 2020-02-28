@@ -5,6 +5,7 @@ import br.com.gamemods.mobai.ai.goal.GoalSelector
 import br.com.gamemods.mobai.ai.pathing.EntityNavigation
 import br.com.gamemods.mobai.ai.pathing.WalkingNavigation
 import br.com.gamemods.mobai.math.MobAiMath
+import cn.nukkit.entity.Attribute
 import cn.nukkit.entity.Entity
 import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.math.Vector3f
@@ -26,6 +27,8 @@ class EntityAI(
     val targetSelector = GoalSelector()
     val lookControl = lookControlFactory(this)
     val navigation = navigationFactory(this)
+
+    val attributes = mutableMapOf<Int, Attribute>()
 
     var target: Entity? = null
 
