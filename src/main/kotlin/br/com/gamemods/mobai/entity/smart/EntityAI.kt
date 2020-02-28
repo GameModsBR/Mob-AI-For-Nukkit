@@ -5,6 +5,7 @@ import br.com.gamemods.mobai.ai.goal.GoalSelector
 import br.com.gamemods.mobai.ai.pathing.EntityNavigation
 import br.com.gamemods.mobai.ai.pathing.WalkingNavigation
 import br.com.gamemods.mobai.math.MobAiMath
+import cn.nukkit.entity.Entity
 import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.math.Vector3f
 import java.util.*
@@ -26,6 +27,7 @@ class EntityAI(
     val lookControl = lookControlFactory(this)
     val navigation = navigationFactory(this)
 
+    var target: Entity? = null
 
     val random: Random get() = ThreadLocalRandom.current()
 

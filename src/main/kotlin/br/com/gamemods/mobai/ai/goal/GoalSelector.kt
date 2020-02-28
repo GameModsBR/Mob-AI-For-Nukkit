@@ -36,7 +36,7 @@ class GoalSelector {
 
     private fun cleanup() {
         runningGoals().filter {
-            !(it.controls.none(disabledControls::contains) && it.shouldContinue())
+            it.controls.any(disabledControls::contains) || !it.shouldContinue()
         }.forEach(Goal::stop)
         goalsByControl.values.removeIf { !it.isRunning }
     }
