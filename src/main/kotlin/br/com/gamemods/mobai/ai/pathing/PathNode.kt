@@ -5,8 +5,8 @@ import cn.nukkit.math.Vector3f
 import cn.nukkit.math.Vector3i
 import kotlin.math.abs
 
-class PathNode(x: Int, y: Int, z: Int) : Vector3i(x, y, z) {
-    //private val hashCode = hash(x, y, z)
+open class PathNode(x: Int, y: Int, z: Int) : Vector3i(x, y, z) {
+    constructor(pos: Vector3i): this(pos.x, pos.y, pos.z)
     var heapIndex = -1
     var penalizedPathLength = 0F
     var distanceToNearestTarget = 0F
@@ -85,14 +85,4 @@ class PathNode(x: Int, y: Int, z: Int) : Vector3i(x, y, z) {
     override fun toString(): String {
         return "PathNode(x=$x, y=$y, z=$z)"
     }
-
-
-    /*companion object {
-        private const val shortMax = Short.MAX_VALUE.toInt()
-        fun hash(x: Int, y: Int, z: Int): Int {
-            return (y and 255) or (x and shortMax) shl 8 or (z and shortMax) shl 24 or
-                    (if (x < 0) Int.MIN_VALUE else 0) or
-                    (if (z < 0) shortMax + 1 else 0)
-        }
-    }*/
 }

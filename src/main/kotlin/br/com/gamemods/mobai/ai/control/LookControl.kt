@@ -1,13 +1,16 @@
 package br.com.gamemods.mobai.ai.control
 
 import br.com.gamemods.mobai.entity.smart.EntityAI
+import br.com.gamemods.mobai.entity.smart.SmartEntity
 import br.com.gamemods.mobai.math.MobAiMath
 import cn.nukkit.entity.Entity
+import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.math.Vector3f
 import kotlin.math.atan2
 import kotlin.math.sqrt
 
-open class LookControl(val ai: EntityAI) {
+open class LookControl<E>(ai: EntityAI<E>) where E: SmartEntity, E: BaseEntity {
+    protected val entity = ai.entity
     protected var yawSpeed = 0.0
     protected var pitchSpeed = 0.0
     protected var active = false
@@ -15,7 +18,7 @@ open class LookControl(val ai: EntityAI) {
     protected var lookY = 0.0
     protected var lookZ = 0.0
 
-    fun lookAt(x: Double, y: Double, z: Double, yawSpeed: Double = ai.lookYawSpeed, pitchSpeed: Double = ai.lookPitchSpeed) {
+    fun lookAt(x: Double, y: Double, z: Double, yawSpeed: Double = entity.lookYawSpeed, pitchSpeed: Double = entity.lookPitchSpeed) {
         this.lookX = x
         this.lookY = y
         this.lookZ = z
@@ -24,19 +27,18 @@ open class LookControl(val ai: EntityAI) {
         this.active = true
     }
 
-    fun lookAt(pos: Vector3f, yawSpeed: Double = ai.lookYawSpeed, pitchSpeed: Double = ai.lookPitchSpeed)
+    fun lookAt(pos: Vector3f, yawSpeed: Double = entity.lookYawSpeed, pitchSpeed: Double = entity.lookPitchSpeed)
             = lookAt(pos.x, pos.y, pos.z, yawSpeed, pitchSpeed)
 
-    fun lookAt(entity: Entity, yawSpeed: Double = ai.lookYawSpeed, pitchSpeed: Double = ai.lookPitchSpeed)
+    fun lookAt(entity: Entity, yawSpeed: Double = this.entity.lookYawSpeed, pitchSpeed: Double = this.entity.lookPitchSpeed)
             = lookAt(entity.x, entity.y + entity.eyeHeight, entity.z, yawSpeed, pitchSpeed)
 
     fun shouldNotPitch() = true
 
     fun tick(): Boolean {
-        val entity = ai.entity
         var pitch = entity.pitch
         var yaw = entity.yaw
-        var headYaw = ai.headYaw
+        var headYaw = this.entity.headYaw
 
         val iniPitch = pitch
         val iniYaw = yaw
@@ -55,19 +57,18 @@ open class LookControl(val ai: EntityAI) {
             headYaw = changeAngle(headYaw, yaw, 10.0)
         }
 
-        if (!ai.navigation.isIdle) {
-            headYaw = changeAngleSubtracting(headYaw, yaw, ai.lookMovingSpeed)
+        if (!entity.ai.navigation.isIdle) {
+            headYaw = changeAngleSubtracting(headYaw, yaw, entity.lookMovingSpeed)
         }
 
         if (iniPitch != pitch || iniYaw != yaw || iniHeadYaw != headYaw) {
-            ai.setRotation(yaw, pitch, headYaw)
+            entity.setRotation(yaw, pitch, headYaw)
         }
 
         return true
     }
 
     protected fun targetPitch(): Double {
-        val entity = ai.entity
         val x = lookX - entity.x
         val y = lookY - entity.y - entity.eyeHeight
         val z = lookZ - entity.z
@@ -76,7 +77,6 @@ open class LookControl(val ai: EntityAI) {
     }
 
     protected fun targetYaw(): Double {
-        val entity = ai.entity
         val x = lookX - entity.x
         val z = lookZ - entity.z
         return (atan2(z, x) * 57.2957763671875) - 90.0
