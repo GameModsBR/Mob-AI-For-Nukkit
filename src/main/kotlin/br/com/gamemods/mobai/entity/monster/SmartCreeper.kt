@@ -76,9 +76,7 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
             return false
         }
 
-        if (ignited) {
-            fuseSpeed = 1
-        }
+        ignited = fuseSpeed >= 0
 
         val speed = fuseSpeed
         if (speed > 0 && currentFuseTime == 0) {
@@ -88,6 +86,7 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
         if (currentFuseTime == fuseTime) {
             explode()
         }
+        updateData()
         return fuseSpeed >= 0
     }
 
