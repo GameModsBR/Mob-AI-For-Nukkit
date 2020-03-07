@@ -1,22 +1,22 @@
 package br.com.gamemods.mobai.entity.smart
 
-import br.com.gamemods.mobai.entity.isDeadOrImmobile
-import br.com.gamemods.mobai.entity.isInLava
-import br.com.gamemods.mobai.entity.isTouchingWater
-import br.com.gamemods.mobai.entity.movementSpeed
+import br.com.gamemods.mobai.entity.*
 import br.com.gamemods.mobai.level.isClimbable
 import br.com.gamemods.mobai.math.MobAiMath
+import br.com.gamemods.mobai.math.square
 import cn.nukkit.block.BlockLiquid
 import cn.nukkit.block.BlockTrapdoor
 import cn.nukkit.entity.Attribute.*
 import cn.nukkit.entity.Entity
 import cn.nukkit.entity.EntityDamageable
+import cn.nukkit.entity.data.EntityFlag.GRAVITY
 import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.level.BlockPosition
 import cn.nukkit.math.Vector3f
 import kotlin.math.abs
 
 interface SmartEntity: EntityProperties, MoveLogic {
+    val velocityMultiplier: Float get() = entity.defaultVelocityMultiplier
     val ai: EntityAI<*>
     val equipments get() = ai.equipments
 
@@ -40,6 +40,7 @@ interface SmartEntity: EntityProperties, MoveLogic {
 
     fun initAttributes() {
         entity.movementSpeed = 0F
+        entity.setFlag(GRAVITY, true)
         addAttributes(MAX_HEALTH, KNOCKBACK_RESISTANCE, MOVEMENT_SPEED, FOLLOW_RANGE)
     }
 
@@ -146,6 +147,11 @@ interface SmartEntity: EntityProperties, MoveLogic {
         // TODO: Skipping initAi, which is actually elytra flying
         //val box = entity.boundingBox.clone()
         travel(Vector3f(sidewaysSpeed.toDouble(), upwardSpeed.toDouble(), forwardSpeed.toDouble()))
+        //TODO Remove this debug code
+        if ((ai.navigation.currentTarget?.distanceSquared(base) ?: 0.0) > 20.square()) {
+            ai.navigation.stop()
+            base.kill()
+        }
         //TODO: Skipping push
         //TODO: Skipping tickCramming
 

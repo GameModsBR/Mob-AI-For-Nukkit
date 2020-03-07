@@ -150,9 +150,13 @@ fun Level.hasCollision(entity: Entity?, bb: AxisAlignedBB, entities: Boolean, fl
     return false
 }
 
+fun ChunkManager.getBlockIdAt(pos: Vector3f, layer: Int = 0) = getBlockIdAt(pos.asVector3i(), layer)
+fun ChunkManager.getBlockAt(pos: Vector3f, layer: Int = 0) = get(pos.asVector3i(), layer)
+fun ChunkManager.getBlockDataAt(pos: Vector3f, layer: Int = 0) = getBlockDataAt(pos.asVector3i(), layer)
+
 fun ChunkManager.getBlockIdAt(pos: Vector3i, layer: Int = 0) = getBlockIdAt(pos.x, pos.y, pos.z, layer)!!
 fun ChunkManager.getBlockAt(pos: Vector3i, layer: Int = 0) = get(pos.x, pos.y, pos.z, layer)
-fun ChunkManager.getBlockDataAt(pos: Vector3i, layer: Int = 0) = getBlockDataAt(pos.x, pos.y, pos.z, 0)
+fun ChunkManager.getBlockDataAt(pos: Vector3i, layer: Int = 0) = getBlockDataAt(pos.x, pos.y, pos.z, layer)
 
 fun ChunkManager.getBlockIdAt(pos: BlockPosition) = getBlockIdAt(pos.x, pos.y, pos.z, pos.layer)!!
 fun ChunkManager.getBlockAt(pos: BlockPosition) = get(pos.x, pos.y, pos.z, pos.layer)
@@ -161,6 +165,7 @@ fun ChunkManager.getBlockDataAt(pos: BlockPosition) = getBlockDataAt(pos.x, pos.
 fun ChunkManager.getChunk(pos: Vector3i): IChunk? = getChunk(pos.x shr 4, pos.z shr 4)
 fun Level.getChunk(pos: Vector3i) = getChunk(pos.x shr 4, pos.z shr 4)
 
+operator fun ChunkManager.get(pos: Vector3f, layer: Int = 0) = get(pos.asVector3i(), layer)
 operator fun ChunkManager.get(pos: Vector3i, layer: Int = 0) = get(pos.x, pos.y, pos.z, layer)
 operator fun ChunkManager.get(pos: BlockPosition) = get(pos.x, pos.y, pos.z, pos.layer)
 

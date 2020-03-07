@@ -41,12 +41,12 @@ interface Traveller {
                 d = 0.01
                 fallDistance = 0.0f
             }
-            val e: Double
-            var f: Float
+            val y: Double
+            var friction: Float
             val j: Double
             if (!isTouchingWater) {
                 if (isInLava) {
-                    e = getY()
+                    y = getY()
                     updateVelocity(0.02f, movementInput)
                     move(MoveCause.SELF, motion)
                     motion = motion.multiply(0.5)
@@ -54,37 +54,37 @@ interface Traveller {
                         motion = motion.add(0.0, -d / 4.0, 0.0)
                     }
                     val vec3d4: Vector3f = motion
-                    if (isCollidedHorizontally && !hasCollision(vec3d4.add(0.0, 0.6000000238418579 - getY() + e, 0.0))) {
+                    if (isCollidedHorizontally && !hasCollision(vec3d4.add(0.0, 0.6000000238418579 - getY() + y, 0.0))) {
                         motion = Vector3f(vec3d4.x, 0.30000001192092896, vec3d4.z)
                     }
                 } //TODO else if (this.isFallFlying()) { ... -- Skipped elytra code
                 else {
                     val blockPos = velocityAffectingPos.asVector3i()
-                    val v: Float = level.getBlock(blockPos).frictionFactor.toFloat()
-                    f = if (onGround) v * 0.91f else 0.91f
-                    updateVelocity(getMovementSpeed(v), movementInput)
-                    motion = this.applyClimbingSpeed(motion)
+                    val blockFriction: Float = level.getBlock(blockPos).frictionFactor.toFloat()
+                    friction = if (onGround) blockFriction * 0.91f else 0.91f
+                    updateVelocity(getMovementSpeed(blockFriction), movementInput)
+                    motion = applyClimbingSpeed(motion)
                     move(MoveCause.SELF, motion)
                     var vec3d7 = motion
                     if ((isCollidedHorizontally || isJumping) && isClimbing) {
                         vec3d7 = Vector3f(vec3d7.x, 0.2, vec3d7.z)
                     }
-                    var x: Double = vec3d7.y
+                    var motY: Double = vec3d7.y
                     if (hasEffect(Effect.LEVITATION)) {
-                        x += (0.05 * (getEffect(Effect.LEVITATION).amplifier + 1).toDouble() - vec3d7.y) * 0.2
+                        motY += (0.05 * (getEffect(Effect.LEVITATION).amplifier + 1).toDouble() - vec3d7.y) * 0.2
                         resetFallDistance()
                     } else if (getFlag(EntityFlag.GRAVITY)) {
-                        x -= d
+                        motY -= d
                     }
                     motion = Vector3f(
-                        vec3d7.x * f.toDouble(),
-                        x * 0.9800000190734863,
-                        vec3d7.z * f.toDouble()
+                        vec3d7.x * friction.toDouble(),
+                        motY * 0.9800000190734863,
+                        vec3d7.z * friction.toDouble()
                     )
                 }
             } else {
-                e = getY()
-                f = if (getFlag(EntityFlag.SPRINTING)) 0.9f else this.baseMovementSpeedMultiplier
+                y = getY()
+                friction = if (getFlag(EntityFlag.SPRINTING)) 0.9f else this.baseMovementSpeedMultiplier
                 g = 0.02f
                 var h = getEquipmentLevel(Enchantment.ID_WATER_WALKER).toFloat()
                 if (h > 3.0f) {
@@ -94,11 +94,11 @@ interface Traveller {
                     h *= 0.5f
                 }
                 if (h > 0.0f) {
-                    f += (0.54600006f - f) * h / 3.0f
+                    friction += (0.54600006f - friction) * h / 3.0f
                     g += (movementSpeed - g) * h / 3.0f
                 }
                 if (hasEffect(FutureEffectIds.DOLPHINS_GRACE)) {
-                    f = 0.96f
+                    friction = 0.96f
                 }
                 this.updateVelocity(g, movementInput)
                 move(MoveCause.SELF, motion)
@@ -106,7 +106,7 @@ interface Traveller {
                 if (isCollidedHorizontally && isClimbing) {
                     vec3d = Vector3f(vec3d.x, 0.2, vec3d.z)
                 }
-                motion = vec3d.multiply(f.toDouble(), 0.800000011920929, f.toDouble())
+                motion = vec3d.multiply(friction.toDouble(), 0.800000011920929, friction.toDouble())
                 var vec3d2: Vector3f
                 if (getFlag(EntityFlag.GRAVITY) && !getFlag(EntityFlag.SPRINTING)) {
                     vec3d2 = motion
@@ -120,7 +120,7 @@ interface Traveller {
                 vec3d2 = motion
                 if (isCollidedHorizontally && !hasCollision(Vector3f(
                         vec3d2.x,
-                        vec3d2.y + 0.6000000238418579 - getY() + e,
+                        vec3d2.y + 0.6000000238418579 - getY() + y,
                         vec3d2.z
                     ))
                 ) {
@@ -148,12 +148,12 @@ interface Traveller {
     }}
 
     fun movementInputToVelocity(movementInput: Vector3f, speed: Float, yaw: Float): Vector3f {
-        val d: Double = movementInput.lengthSquared()
-        return if (d < 1.0E-7) {
+        val length: Double = movementInput.lengthSquared()
+        return if (length < 1.0E-7) {
             ZERO_3F
         } else {
             val vec3d: Vector3f =
-                (if (d > 1.0) movementInput.normalize() else movementInput).multiply(speed.toDouble())
+                (if (length > 1.0) movementInput.normalize() else movementInput).multiply(speed.toDouble())
             val f: Float = MathHelper.sin(yaw * 0.017453292f)
             val g: Float = MathHelper.cos(yaw * 0.017453292f)
             Vector3f(

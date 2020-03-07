@@ -4,8 +4,10 @@ import br.com.gamemods.mobai.ai.pathing.PathNodeType
 import br.com.gamemods.mobai.entity.smart.EntityProperties
 import br.com.gamemods.mobai.entity.smart.EntityPropertyStorage
 import br.com.gamemods.mobai.entity.smart.SmartEntity
+import br.com.gamemods.mobai.level.get
 import br.com.gamemods.mobai.level.getBlockIdAt
 import br.com.gamemods.mobai.level.hasCollision
+import br.com.gamemods.mobai.level.velocityMultiplier
 import br.com.gamemods.mobai.math.offsetCopy
 import cn.nukkit.block.BlockIds.*
 import cn.nukkit.entity.Attribute
@@ -33,6 +35,17 @@ val Entity.isInsideOfWaterOrBubbles get() = (this as? BaseEntity)?.isInsideOfWat
 val Entity.isInsideOfBubbles get() = level.getBlockIdAt(position.asVector3i()) == BUBBLE_COLUMN
 val BaseEntity.isInsideOfWaterOrBubbles get() = isInsideOfWater || level.getBlockIdAt(asVector3i()) == BUBBLE_COLUMN
 val Entity.velocityAffectingPos get() = Vector3f(x, boundingBox.minY - 0.5000001, z)
+
+val Entity.velocityMultiplier get() = (this as? SmartEntity)?.velocityMultiplier ?: defaultVelocityMultiplier
+val Entity.defaultVelocityMultiplier: Float get() {
+    val block = level[position]
+
+    val f: Float = block.velocityMultiplier
+    return when (block.id) {
+        WATER, FLOWING_WATER, BUBBLE_COLUMN -> return f
+        else -> if (f.toDouble() == 1.0) level[velocityAffectingPos].velocityMultiplier else f
+    }
+}
 
 var Entity.movementSpeed: Float
     get() = (this as? EntityLiving)?.movementSpeed ?: 0.1F
@@ -109,7 +122,7 @@ tailrec fun Entity.isRiding(entity: Entity): Boolean {
 
 fun Entity.getMovementSpeed(slipperiness: Float): Float {
     return if (isOnGround) {
-        movementSpeed * (0.21600002F / (slipperiness * slipperiness * slipperiness))
+        movementSpeed * ((0.6F * 0.6F * 0.6F) / (slipperiness * slipperiness * slipperiness))
     } else {
         flyingSpeed
     }

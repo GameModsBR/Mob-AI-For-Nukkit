@@ -31,7 +31,6 @@ open class MoveControl<E>(ai: EntityAI<E>) where E: SmartEntity, E: BaseEntity {
     val isMoving get() = state == MOVE_TO
 
     fun moveTo(target: Vector3f, speed: Double) {
-        println("TG: $target")
         this.target = target
         this.speed = speed
         if (state != JUMPING) {

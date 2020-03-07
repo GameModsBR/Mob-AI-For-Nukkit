@@ -1,5 +1,8 @@
 package br.com.gamemods.mobai.entity.smart
 
+import br.com.gamemods.mobai.math.ZERO_3F
+import br.com.gamemods.mobai.math.offset
+import br.com.gamemods.mobai.math.times
 import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.math.Vector3f
 
@@ -12,33 +15,30 @@ interface MoveLogic: Traveller, EntityProperties {
         setPosition(Vector3f((box.minX + box.maxX) / 2.0, box.minY, (box.minZ + box.maxZ) / 2.0))
     }}
 
-    override fun move(cause: MoveCause, movement: Vector3f) {
-        println("MV: $movement")
-        //base.move(movement.x, movement.y, movement.z)
-    }
-
-/*
-    override fun move(type: MoveCause, movement: Vector3f) { base.apply {  smart.apply {
-        var movement2 = movement
+    override fun move(cause: MoveCause, movement: Vector3f) { base.apply {  smart.apply {
         if (this.noClip) {
-            boundingBox.offset(movement2)
+            boundingBox.offset(movement)
             this.moveToBoundingBoxCenter()
             return
         }
 
-        if (type == MoveCause.PISTON) {
-            movement2 = this.adjustMovementForPiston(movement2)
-            if (movement2 == ZERO_3F) {
-                return
-            }
-        }
-
-        if (this.movementMultiplier.lengthSquared() > 1.0E-7) {
-            movement2 = movement2.multiply(movementMultiplier)
-            this.movementMultiplier = ZERO_3F
+        var mov = movement
+        if (movementMultiplier.lengthSquared() > 1.0E-7) {
+            mov = movement * movementMultiplier
+            movementMultiplier = ZERO_3F
             motion = ZERO_3F
         }
 
+        println("MV: $mov")
+
+        base.move(mov.x, mov.y, mov.z)
+
+        //val velocityMultiplier = velocityMultiplier.toDouble()
+        //motion = motion.multiply(velocityMultiplier, 1.0, velocityMultiplier)
+    }}}
+
+/*
+    override fun move(type: MoveCause, movement: Vector3f) { base.apply {  smart.apply {
         movement2 = adjustMovementForSneaking(movement2, type)
         val vec3d: Vec3d = this.adjustMovementForCollisions(movement2)
         if (vec3d.lengthSquared() > 1.0E-7) {
