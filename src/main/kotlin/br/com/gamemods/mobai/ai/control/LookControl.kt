@@ -54,11 +54,11 @@ open class LookControl<E>(ai: EntityAI<E>) where E: SmartEntity, E: BaseEntity {
             //headYaw = yaw
             pitch = changeAngle(pitch, targetPitch(), pitchSpeed)
         } else {
-            headYaw = changeAngle(headYaw, yaw, 10.0)
+            headYaw = changeAngle(headYaw, yaw, entity.lookYawSpeed)
         }
 
-        if (!entity.ai.navigation.isIdle) {
-            headYaw = changeAngleSubtracting(headYaw, yaw, entity.lookMovingSpeed)
+        if (entity.ai.navigation.isActive) {
+            headYaw = changeAngle(headYaw, yaw, entity.lookMovingSpeed)
         }
 
         if (iniPitch != pitch || iniYaw != yaw || iniHeadYaw != headYaw) {

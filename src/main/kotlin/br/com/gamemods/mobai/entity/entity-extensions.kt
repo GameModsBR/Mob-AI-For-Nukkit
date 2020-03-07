@@ -40,10 +40,10 @@ val Entity.velocityMultiplier get() = (this as? SmartEntity)?.velocityMultiplier
 val Entity.defaultVelocityMultiplier: Float get() {
     val block = level[position]
 
-    val f: Float = block.velocityMultiplier
+    val multiplier = block.velocityMultiplier
     return when (block.id) {
-        WATER, FLOWING_WATER, BUBBLE_COLUMN -> return f
-        else -> if (f.toDouble() == 1.0) level[velocityAffectingPos].velocityMultiplier else f
+        WATER, FLOWING_WATER, BUBBLE_COLUMN -> return multiplier
+        else -> if (multiplier == 1F) level[velocityAffectingPos].velocityMultiplier else multiplier
     }
 }
 
