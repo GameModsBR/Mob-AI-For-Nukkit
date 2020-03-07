@@ -4,6 +4,7 @@ import br.com.gamemods.mobai.ai.pathing.TargetFinder
 import br.com.gamemods.mobai.entity.smart.EntityAI
 import br.com.gamemods.mobai.entity.smart.SmartEntity
 import br.com.gamemods.mobai.level.getWaterDamage
+import br.com.gamemods.mobai.math.MobAiMath.square
 import cn.nukkit.entity.Entity
 import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.level.ChunkManager
@@ -49,10 +50,10 @@ open class EscapeDangerGoal<E>(val ai: EntityAI<E>, var speed: Double): Goal() w
 
     protected open fun locateClosestWater(blockView: ChunkManager, entity: Entity, rangeX: Int, rangeY: Int): Vector3i? {
         val blockPos = entity.position.asVector3i()
-        val x: Int = blockPos.getX()
-        val y: Int = blockPos.getY()
-        val z: Int = blockPos.getZ()
-        var range = rangeX * rangeX * rangeY * 2.toFloat()
+        val x: Int = blockPos.x
+        val y: Int = blockPos.y
+        val z: Int = blockPos.z
+        var range = rangeX * rangeX * rangeY * 2F
         var closest: Vector3i? = null
         for (scanX in x - rangeX..x + rangeX) {
             for (scanY in y - rangeY..y + rangeY) {
@@ -64,8 +65,7 @@ open class EscapeDangerGoal<E>(val ai: EntityAI<E>, var speed: Double): Goal() w
                     }
 
 
-                    val distance =
-                        ((scanX - x) * (scanX - x) + (scanY - y) * (scanY - y) + (scanZ - z) * (scanZ - z)).toFloat()
+                    val distance = (square(scanX - x) + square(scanY - y) + square(scanZ - z)).toFloat()
 
                     if (distance >= range) {
                         continue

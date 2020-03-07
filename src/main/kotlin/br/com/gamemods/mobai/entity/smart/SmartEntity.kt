@@ -11,8 +11,7 @@ import cn.nukkit.block.BlockTrapdoor
 import cn.nukkit.entity.Attribute.*
 import cn.nukkit.entity.Entity
 import cn.nukkit.entity.Projectile
-import cn.nukkit.entity.data.EntityFlag.GRAVITY
-import cn.nukkit.entity.data.EntityFlag.SPRINTING
+import cn.nukkit.entity.data.EntityFlag.*
 import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.entity.impl.EntityLiving
 import cn.nukkit.event.entity.EntityDamageByEntityEvent
@@ -56,9 +55,17 @@ interface SmartEntity: EntityProperties, MoveLogic {
         }
     }}
 
+    fun init() {
+        initData()
+        initAttributes()
+    }
+
+    fun initData() {
+        entity.addFlags(GRAVITY, CAN_CLIMB)
+    }
+
     fun initAttributes() {
         entity.movementSpeed = 0F
-        entity.setFlag(GRAVITY, true)
         addAttributes(MAX_HEALTH, KNOCKBACK_RESISTANCE, MOVEMENT_SPEED, FOLLOW_RANGE)
     }
 

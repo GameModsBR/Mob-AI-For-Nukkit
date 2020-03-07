@@ -12,6 +12,7 @@ import br.com.gamemods.mobai.math.offsetCopy
 import cn.nukkit.block.BlockIds.*
 import cn.nukkit.entity.Attribute
 import cn.nukkit.entity.Entity
+import cn.nukkit.entity.data.EntityData
 import cn.nukkit.entity.data.EntityFlag
 import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.entity.impl.EntityLiving
@@ -63,6 +64,30 @@ var Entity.flyingSpeed: Float
     get() = properties.flyingSpeed
     set(value) {
         propertiesOrNul?.flyingSpeed = value
+    }
+
+var Entity.maxAir: Int
+    get() = getShortData(EntityData.MAX_AIR).toInt()
+    set(value) {
+        setShortData(EntityData.MAX_AIR, value)
+    }
+
+var Entity.air: Int
+    get() = getShortData(EntityData.AIR).toInt()
+    set(value) {
+        setShortData(EntityData.AIR, value)
+    }
+
+var Entity.isNameTagAlwaysVisible: Boolean
+    get() = (this as? BaseEntity)?.isNameTagAlwaysVisible ?: false
+    set(value) {
+        (this as? BaseEntity)?.isNameTagAlwaysVisible = true
+    }
+
+var Entity.isSilent: Boolean
+    get() = getFlag(EntityFlag.SILENT)
+    set(value) {
+        setFlag(EntityFlag.SILENT, value)
     }
 
 fun Entity.hasCollision(pos: Vector3f): Boolean {
@@ -126,3 +151,16 @@ fun Entity.getMovementSpeed(slipperiness: Float): Float {
         flyingSpeed
     }
 }
+
+fun Entity.addFlags(first: EntityFlag, vararg others: EntityFlag) {
+    sequenceOf(first, *others).forEach {
+        setFlag(it, true)
+    }
+}
+
+var Attribute.baseValue: Float
+    get() = value
+    set(value) {
+        this.defaultValue = value
+        this.value = value
+    }

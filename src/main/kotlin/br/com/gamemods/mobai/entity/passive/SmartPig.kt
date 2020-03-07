@@ -5,16 +5,15 @@ import br.com.gamemods.mobai.ai.goal.LookAroundGoal
 import br.com.gamemods.mobai.ai.goal.LookAtEntityGoal
 import br.com.gamemods.mobai.ai.goal.WanderAroundFarGoal
 import br.com.gamemods.mobai.entity.attribute
-import br.com.gamemods.mobai.entity.smart.EntityAI
-import br.com.gamemods.mobai.entity.smart.EntityProperties
-import br.com.gamemods.mobai.entity.smart.EntityPropertyStorage
-import br.com.gamemods.mobai.entity.smart.SmartAnimal
+import br.com.gamemods.mobai.entity.baseValue
+import br.com.gamemods.mobai.entity.smart.*
 import cn.nukkit.entity.Attribute.MAX_HEALTH
 import cn.nukkit.entity.Attribute.MOVEMENT_SPEED
 import cn.nukkit.entity.EntityType
 import cn.nukkit.entity.impl.passive.EntityPig
 import cn.nukkit.entity.passive.Pig
 import cn.nukkit.event.entity.EntityDamageEvent
+import cn.nukkit.level.Sound
 import cn.nukkit.level.chunk.Chunk
 import cn.nukkit.nbt.tag.CompoundTag
 import cn.nukkit.player.Player
@@ -28,14 +27,18 @@ class SmartPig(type: EntityType<Pig>, chunk: Chunk, tag: CompoundTag)
         goalSelector.add(8, LookAroundGoal(this))
     }
 
-    init {
-        initAttributes()
-    }
+    init { init() }
 
     override fun initAttributes() {
         super.initAttributes()
-        attribute(MAX_HEALTH).value = 10F
-        attribute(MOVEMENT_SPEED).value = 0.25F
+        attribute(MAX_HEALTH).baseValue = 10F
+        attribute(MOVEMENT_SPEED).baseValue = 0.25F
+
+        simpleStepSound = SimpleSound(Sound.MOB_PIG_STEP)
+    }
+
+    override fun setMaxHealth(maxHealth: Int) {
+        super.setMaxHealth(maxHealth)
     }
 
     override fun updateMovement() = super<SmartAnimal>.updateMovement()

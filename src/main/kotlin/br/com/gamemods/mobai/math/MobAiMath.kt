@@ -8,6 +8,8 @@ object MobAiMath {
     const val RAD2DEG_F = 57.2957763671875
 
     inline fun square(value: Double) = value.square()
+    inline fun square(value: Float) = value.square()
+    inline fun square(value: Int) = value.square()
     inline fun clamp(check: Double, min: Double, max: Double) = check.clamp(min, max)
 
     fun subtractAngles(start: Double, end: Double): Double {

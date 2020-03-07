@@ -38,8 +38,10 @@ class EntityPropertyStorage (
     override var attacker: Entity? = null,
     override var lastAttackedTime: Int = 0,
     override var attacking: Entity? = null,
-    override var lastAttackTime: Int = 0
-    //override var climbing: Vector3i? = null
+    override var lastAttackTime: Int = 0,
+    override var distanceTraveled: Float = 0F,
+    override var nextStepSoundDistance: Float = 0F,
+    override var simpleStepSound: SimpleSound? = null
 ) : EntityProperties {
 
     constructor(nbt: CompoundTag) : this(
@@ -75,7 +77,9 @@ interface EntityProperties {
     var lastAttackedTime: Int
     var attacking: Entity?
     var lastAttackTime: Int
-    //var climbing: Vector3i?
+    var distanceTraveled: Float
+    var nextStepSoundDistance: Float
+    var simpleStepSound: SimpleSound?
     val random: Random get() = ThreadLocalRandom.current()
 
     fun addAttribute(attribute: Attribute) {
