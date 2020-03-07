@@ -106,7 +106,7 @@ open class MoveControl<E>(ai: EntityAI<E>) where E: SmartEntity, E: BaseEntity {
         val blockPos = entity.asVector3i()
         val block = entity.level.getBlock(blockPos)
         val bb: AxisAlignedBB? = block.boundingBox
-        if (z > entity.stepHeight.toDouble() && x.square() + y.square() < max(1.0f, entity.width).toDouble()
+        if (y > entity.stepHeight.toDouble() && x.square() + z.square() < max(1.0f, entity.width).toDouble()
             || bb?.isEmpty == false && entity.y < bb.maxY && block !is BlockDoor && block !is BlockFence
         ) {
             entity.ai.jumpControl.setActive()

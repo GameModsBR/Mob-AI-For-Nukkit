@@ -1,7 +1,9 @@
 package br.com.gamemods.mobai.entity.smart
 
 import br.com.gamemods.mobai.entity.*
+import br.com.gamemods.mobai.level.get
 import br.com.gamemods.mobai.level.isClimbable
+import br.com.gamemods.mobai.level.jumpVelocityMultiplier
 import br.com.gamemods.mobai.math.MobAiMath
 import br.com.gamemods.mobai.math.square
 import cn.nukkit.block.BlockLiquid
@@ -10,18 +12,31 @@ import cn.nukkit.entity.Attribute.*
 import cn.nukkit.entity.Entity
 import cn.nukkit.entity.EntityDamageable
 import cn.nukkit.entity.data.EntityFlag.GRAVITY
+import cn.nukkit.entity.data.EntityFlag.SPRINTING
 import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.level.BlockPosition
+import cn.nukkit.math.MathHelper
 import cn.nukkit.math.Vector3f
+import cn.nukkit.potion.Effect
 import kotlin.math.abs
 
 interface SmartEntity: EntityProperties, MoveLogic {
-    val velocityMultiplier: Float get() = entity.defaultVelocityMultiplier
     val ai: EntityAI<*>
     val equipments get() = ai.equipments
 
     private inline val entity get() = this as Entity
     private inline val base get() = this as BaseEntity
+
+    val velocityMultiplier: Float get() = entity.defaultVelocityMultiplier
+    val jumpVelocity get() = 0.42F * jumpVelocityMultiplier
+    val jumpVelocityMultiplier: Float get() {
+        val multiplier = base.levelBlock.jumpVelocityMultiplier
+        return if (multiplier == 1F) {
+            base.level[base.velocityAffectingPos].jumpVelocityMultiplier
+        } else {
+            multiplier
+        }
+    }
 
     @Suppress("RedundantIf")
     val isClimbing: Boolean get() { base.apply {
@@ -76,7 +91,6 @@ interface SmartEntity: EntityProperties, MoveLogic {
         entity.lastUpdate = currentTick
 
         val needUpdate = entity.entityBaseTick(tickDiff) or
-            ai.tickAI(tickDiff) or
             tickMovement(tickDiff)
 
         entity.updateMovement()
@@ -170,9 +184,17 @@ interface SmartEntity: EntityProperties, MoveLogic {
 
     }
 
-    fun jump() {
-
-    }
+    fun jump() { base.apply {
+        var jumpVelocity = jumpVelocity
+        if (hasEffect(Effect.JUMP)) {
+            jumpVelocity += 0.1f * (getEffect(Effect.JUMP).amplifier + 1)
+        }
+        motion = Vector3f(motionX, jumpVelocity.toDouble(), motionZ)
+        if (getFlag(SPRINTING)) {
+            val g: Float = this.yaw.toFloat() * 0.017453292f
+            motion = motion.add(-MathHelper.sin(g) * 0.2, 0.0, MathHelper.cos(g) * 0.2)
+        }
+    }}
 
     fun canTarget(entity: Entity) = entity is EntityDamageable
 

@@ -258,8 +258,8 @@ abstract class EntityNavigation<T>(ai: EntityAI<T>) where T: SmartEntity, T: Bas
         path.forEach {
             entity.level.setBlock(it, Block.get(BlockIds.REDSTONE_WIRE))
         }
-        entity.level.setBlock(path.first(), Block.get(BlockIds.CARPET))
-        entity.level.setBlock(path.last(), Block.get(BlockIds.WOODEN_SLAB))
+        //entity.level.setBlock(path.first(), Block.get(BlockIds.CARPET))
+        //entity.level.setBlock(path.last(), Block.get(BlockIds.WOODEN_SLAB))
     }
 
     //TODO isFullOpaque should really be translated to isSolid?

@@ -17,7 +17,7 @@ import cn.nukkit.nbt.tag.CompoundTag
 class SmartPig(type: EntityType<Pig>, chunk: Chunk, tag: CompoundTag)
     : EntityPig(type, chunk, tag), SmartAnimal, EntityProperties by EntityPropertyStorage(tag) {
     override val ai = EntityAI(this).apply {
-        goalSelector.add(6, WanderAroundFarGoal(this, 1.0, probability = 0.8F))
+        goalSelector.add(6, WanderAroundFarGoal(this, 1.0, probability = 0.8F, chance = 10))
         //goalSelector.add(7, LookAtEntityGoal(this, Player::class, 6.0))
         //goalSelector.add(8, LookAroundGoal(this))
     }

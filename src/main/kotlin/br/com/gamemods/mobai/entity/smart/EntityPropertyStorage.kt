@@ -10,7 +10,7 @@ import it.unimi.dsi.fastutil.longs.LongSet
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 
-data class EntityPropertyStorage (
+class EntityPropertyStorage (
     override var headYaw: Double,
     override var lastHeadYaw: Double = headYaw,
     override var flyingSpeed: Float = 0.2F,

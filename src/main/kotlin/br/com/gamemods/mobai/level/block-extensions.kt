@@ -18,3 +18,8 @@ val Block.velocityMultiplier get() = when (id) {
     SOUL_SAND, HONEY_BLOCK -> 0.4F
     else -> 1.0F
 }
+
+val Block.jumpVelocityMultiplier get() = when (id) {
+    HONEY_BLOCK -> 0.5F
+    else -> 1.0F
+}

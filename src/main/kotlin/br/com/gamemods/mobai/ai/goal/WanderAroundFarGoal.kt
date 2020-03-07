@@ -7,8 +7,8 @@ import br.com.gamemods.mobai.entity.smart.SmartEntity
 import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.math.Vector3i
 
-class WanderAroundFarGoal<E>(ai: EntityAI<E>, speed: Double, val probability: Float = 0.001F)
-    : WanderAroundGoal<E>(ai, speed)
+class WanderAroundFarGoal<E>(ai: EntityAI<E>, speed: Double, val probability: Float = 0.001F, chance: Int = 120)
+    : WanderAroundGoal<E>(ai, speed, chance)
         where E: SmartEntity, E: BaseEntity {
 
     override fun findTarget(): Vector3i? {
