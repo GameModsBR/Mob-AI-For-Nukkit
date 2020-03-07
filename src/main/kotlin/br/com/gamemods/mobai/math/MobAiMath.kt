@@ -37,4 +37,6 @@ object MobAiMath {
     }
 
     fun horizontalChunkBlock(pos: Int) = pos and 0x0F
+
+    inline fun nanoTime() = System.nanoTime() / 1000000L
 }

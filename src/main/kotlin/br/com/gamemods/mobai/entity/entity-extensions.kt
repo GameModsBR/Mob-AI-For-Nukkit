@@ -40,6 +40,13 @@ var Entity.movementSpeed: Float
         (this as? EntityLiving)?.movementSpeed = value
     }
 
+var Entity.forwardMovementSpeed: Float
+    get() = (this as? EntityProperties)?.forwardSpeed ?: 0F
+    set(value) {
+        (this as? EntityProperties)?.forwardSpeed = value
+        (this as? EntityLiving)?.movementSpeed = value
+    }
+
 var Entity.flyingSpeed: Float
     get() = properties.flyingSpeed
     set(value) {

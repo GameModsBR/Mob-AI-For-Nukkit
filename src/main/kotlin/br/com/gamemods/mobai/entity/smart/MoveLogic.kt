@@ -13,7 +13,8 @@ interface MoveLogic: Traveller, EntityProperties {
     }}
 
     override fun move(cause: MoveCause, movement: Vector3f) {
-        base.move(movement.x, movement.y, movement.z)
+        println("MV: $movement")
+        //base.move(movement.x, movement.y, movement.z)
     }
 
 /*

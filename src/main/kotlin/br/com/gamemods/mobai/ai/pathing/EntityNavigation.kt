@@ -7,7 +7,9 @@ import br.com.gamemods.mobai.entity.smart.EntityAI
 import br.com.gamemods.mobai.entity.smart.SmartEntity
 import br.com.gamemods.mobai.level.ChunkCache
 import br.com.gamemods.mobai.level.isAir
+import br.com.gamemods.mobai.math.MobAiMath
 import br.com.gamemods.mobai.math.intFloor
+import cn.nukkit.block.Block
 import cn.nukkit.block.BlockIds
 import cn.nukkit.block.BlockLiquid
 import cn.nukkit.entity.Attribute
@@ -112,7 +114,9 @@ abstract class EntityNavigation<T>(ai: EntityAI<T>) where T: SmartEntity, T: Bas
         }
 
         if (!path.equalsPath(currentPath)) {
+            debugClear()
             currentPath = path
+            debugPath()
         }
 
         val currentPath = currentPath ?: return false
@@ -220,7 +224,7 @@ abstract class EntityNavigation<T>(ai: EntityAI<T>) where T: SmartEntity, T: Bas
 
         val currentPathPos = currentPath.currentPosition
         if (currentPathPos == lastPathPos) {
-            nanoTimeSpent += System.nanoTime() - lastNanoTimeCheck
+            nanoTimeSpent += MobAiMath.nanoTime() - lastNanoTimeCheck
         } else {
             lastPathPos = currentPathPos
             val distance = entityPos.distance(currentPathPos)
@@ -239,7 +243,23 @@ abstract class EntityNavigation<T>(ai: EntityAI<T>) where T: SmartEntity, T: Bas
     }
 
     fun stop() {
+        debugClear()
         currentPath = null
+    }
+
+    @Deprecated("Debug")
+    fun debugClear() {
+        currentPath?.forEach { entity.level.setBlock(it, Block.get(BlockIds.AIR)) }
+    }
+
+    @Deprecated("Debug")
+    fun debugPath() {
+        val path = currentPath ?: return
+        path.forEach {
+            entity.level.setBlock(it, Block.get(BlockIds.REDSTONE_WIRE))
+        }
+        entity.level.setBlock(path.first(), Block.get(BlockIds.CARPET))
+        entity.level.setBlock(path.last(), Block.get(BlockIds.WOODEN_SLAB))
     }
 
     //TODO isFullOpaque should really be translated to isSolid?

@@ -102,7 +102,19 @@ private val lightLevelToBrightness = Array(3) { dimension ->
 }
 
 fun Level.getBrightness(pos: Vector3i): Float {
-    return lightLevelToBrightness.getOrNull(dimension)?.getOrNull(getFullLight(pos)) ?: 0F
+    return lightLevelToBrightness.getOrNull(dimension)?.getOrNull(getFullLightFixed(pos)) ?: 0F
+}
+
+//TODO Remove after https://github.com/NukkitX/Nukkit/pull/1235 gets merged
+@Deprecated("Temporary workaround")
+fun Level.getFullLightFixed(pos: Vector3i): Int {
+    val chunk: Chunk = this.getChunk(pos.chunkX, pos.chunkZ)
+    var level = chunk.getSection(pos.y shr 4)?.getSkyLight(pos.x and 0x0f, pos.y and 0x0f, pos.z and 0x0f)?.toInt() ?: 0
+    level -= this.skyLightSubtracted.toInt()
+    if (level < 15) {
+        level = chunk.getBlockLight(pos.x and 0x0f, pos.y and 0xff, pos.z and 0x0f).toInt().coerceAtLeast(level)
+    }
+    return level
 }
 
 fun Level.hasCollision(entity: Entity?, bb: AxisAlignedBB, entities: Boolean, fluids: Boolean): Boolean {

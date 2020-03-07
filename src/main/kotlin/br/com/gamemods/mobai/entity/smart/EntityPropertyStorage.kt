@@ -14,9 +14,9 @@ data class EntityPropertyStorage (
     override var headYaw: Double,
     override var lastHeadYaw: Double = headYaw,
     override var flyingSpeed: Float = 0.2F,
-    override var speedX: Float = 0F,
-    override var speedY: Float = 0F,
-    override var speedZ: Float = 0F,
+    override var sidewaysSpeed: Float = 0F,
+    override var upwardSpeed: Float = 0F,
+    override var forwardSpeed: Float = 0F,
     override var deSpawnCounter: Int = 0,
     override val lookPitchSpeed: Double = 40.0,
     override val lookMovingSpeed: Double = 75.0,
@@ -46,9 +46,9 @@ interface EntityProperties {
     var headYaw: Double
     var lastHeadYaw: Double
     var flyingSpeed: Float
-    var speedX: Float //sidewaysSpeed
-    var speedY: Float //upwardSpeed
-    var speedZ: Float //forwardSpeed
+    var sidewaysSpeed: Float
+    var upwardSpeed: Float
+    var forwardSpeed: Float
     var deSpawnCounter: Int
     val lookPitchSpeed: Double
     val lookMovingSpeed: Double

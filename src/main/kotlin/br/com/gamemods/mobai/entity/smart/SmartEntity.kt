@@ -109,8 +109,8 @@ interface SmartEntity: EntityProperties, MoveLogic {
         entity.motion = motion
         if (entity.isDeadOrImmobile) {
             isJumping = false
-            speedX = 0F
-            speedZ = 0F
+            sidewaysSpeed = 0F
+            forwardSpeed = 0F
         } else if (!isAiDisabled) {
             needsUpdate = needsUpdate or ai.tickAI(tickDiff)
         }
@@ -141,11 +141,11 @@ interface SmartEntity: EntityProperties, MoveLogic {
             jumpingCooldown = 0
         }
 
-        speedX *= 0.98F
-        speedZ *= 0.98F
+        sidewaysSpeed *= 0.98F
+        forwardSpeed *= 0.98F
         // TODO: Skipping initAi, which is actually elytra flying
         //val box = entity.boundingBox.clone()
-        travel(Vector3f(speedX.toDouble(), speedY.toDouble(), speedZ.toDouble()))
+        travel(Vector3f(sidewaysSpeed.toDouble(), upwardSpeed.toDouble(), forwardSpeed.toDouble()))
         //TODO: Skipping push
         //TODO: Skipping tickCramming
 

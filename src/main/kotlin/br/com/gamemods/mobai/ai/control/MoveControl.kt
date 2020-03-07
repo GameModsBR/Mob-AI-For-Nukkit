@@ -3,6 +3,7 @@ package br.com.gamemods.mobai.ai.control
 import br.com.gamemods.mobai.ai.control.MoveControl.State.*
 import br.com.gamemods.mobai.ai.pathing.PathNodeType
 import br.com.gamemods.mobai.entity.attribute
+import br.com.gamemods.mobai.entity.forwardMovementSpeed
 import br.com.gamemods.mobai.entity.movementSpeed
 import br.com.gamemods.mobai.entity.smart.EntityAI
 import br.com.gamemods.mobai.entity.smart.SmartEntity
@@ -30,6 +31,7 @@ open class MoveControl<E>(ai: EntityAI<E>) where E: SmartEntity, E: BaseEntity {
     val isMoving get() = state == MOVE_TO
 
     fun moveTo(target: Vector3f, speed: Double) {
+        println("TG: $target")
         this.target = target
         this.speed = speed
         if (state != JUMPING) {
@@ -83,8 +85,8 @@ open class MoveControl<E>(ai: EntityAI<E>) where E: SmartEntity, E: BaseEntity {
             movementSpeed = movementSpeedAttribute
         }
         entity.movementSpeed = movementSpeed
-        entity.speedZ = this.forwardMovement
-        entity.speedX = this.sidewaysMovement
+        entity.forwardSpeed = this.forwardMovement
+        entity.sidewaysSpeed = this.sidewaysMovement
         state = WAIT
         return true
     }
@@ -96,12 +98,12 @@ open class MoveControl<E>(ai: EntityAI<E>) where E: SmartEntity, E: BaseEntity {
         val z = target.z - entity.z
         val p = x.square() + z.square() + y.square()
         if (p < 2.500000277905201E-7) {
-            entity.speedZ = 0.0f
+            entity.forwardSpeed = 0.0f
             return true
         }
-        val angle = (atan2(y, x) * MobAiMath.RAD2DEG_F).toFloat() - 90.0f
+        val angle = (atan2(z, x) * MobAiMath.RAD2DEG_F).toFloat() - 90.0f
         entity.yaw = changeAngle(entity.yaw.toFloat(), angle, 90.0f).toDouble()
-        entity.movementSpeed = (speed * entity.attribute(MOVEMENT_SPEED).value).toFloat()
+        entity.forwardMovementSpeed = (speed * entity.attribute(MOVEMENT_SPEED).value).toFloat()
         val blockPos = entity.asVector3i()
         val block = entity.level.getBlock(blockPos)
         val bb: AxisAlignedBB? = block.boundingBox
@@ -115,7 +117,7 @@ open class MoveControl<E>(ai: EntityAI<E>) where E: SmartEntity, E: BaseEntity {
     }
 
     protected fun processJump(): Boolean {
-        entity.movementSpeed = (speed * entity.attribute(MOVEMENT_SPEED).value).toFloat()
+        entity.forwardMovementSpeed = (speed * entity.attribute(MOVEMENT_SPEED).value).toFloat()
         if (entity.isOnGround) {
             state = WAIT
         }
@@ -123,7 +125,7 @@ open class MoveControl<E>(ai: EntityAI<E>) where E: SmartEntity, E: BaseEntity {
     }
 
     protected fun processWait(): Boolean {
-        entity.speedZ = 0F
+        entity.forwardSpeed = 0F
         return true
     }
 

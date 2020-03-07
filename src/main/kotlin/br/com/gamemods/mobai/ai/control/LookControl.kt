@@ -68,27 +68,27 @@ open class LookControl<E>(ai: EntityAI<E>) where E: SmartEntity, E: BaseEntity {
         return true
     }
 
-    protected fun targetPitch(): Double {
+    protected open fun targetPitch(): Double {
         val x = lookX - entity.x
         val y = lookY - entity.y - entity.eyeHeight
         val z = lookZ - entity.z
         val a = sqrt(x * x + z * z)
-        return -(atan2(y, a) * 57.2957763671875)
+        return -(atan2(y, a) * MobAiMath.RAD2DEG_F)
     }
 
-    protected fun targetYaw(): Double {
+    protected open fun targetYaw(): Double {
         val x = lookX - entity.x
         val z = lookZ - entity.z
-        return (atan2(z, x) * 57.2957763671875) - 90.0
+        return (atan2(z, x) * MobAiMath.RAD2DEG_F) - 90.0
     }
 
-    protected fun changeAngle(from: Double, to: Double, max: Double): Double {
+    open fun changeAngle(from: Double, to: Double, max: Double): Double {
         val a = MobAiMath.subtractAngles(from, to)
         val b = MobAiMath.clamp(a, -max, max)
         return from + b
     }
 
-    protected fun changeAngleSubtracting(from: Double, to: Double, max: Double): Double {
+    protected open fun changeAngleSubtracting(from: Double, to: Double, max: Double): Double {
         val a = MobAiMath.subtractAngles(from, to)
         val b = MobAiMath.clamp(a, -max, max)
         return from - b

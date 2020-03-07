@@ -2,6 +2,7 @@ package br.com.gamemods.mobai.entity.smart
 
 import br.com.gamemods.mobai.entity.*
 import br.com.gamemods.mobai.level.FutureEffectIds
+import br.com.gamemods.mobai.math.ZERO_3F
 import br.com.gamemods.mobai.math.clamp
 import cn.nukkit.block.BlockLadder
 import cn.nukkit.block.BlockTrapdoor
@@ -30,6 +31,7 @@ interface Traveller {
     }
 
     fun travel(movementInput: Vector3f) { base.apply { smart.apply {
+        println("TR: $movementInput")
         var d: Double
         var g: Float
         if (!isAiDisabled) {
@@ -148,7 +150,7 @@ interface Traveller {
     fun movementInputToVelocity(movementInput: Vector3f, speed: Float, yaw: Float): Vector3f {
         val d: Double = movementInput.lengthSquared()
         return if (d < 1.0E-7) {
-            Vector3f()
+            ZERO_3F
         } else {
             val vec3d: Vector3f =
                 (if (d > 1.0) movementInput.normalize() else movementInput).multiply(speed.toDouble())
