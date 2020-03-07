@@ -2,8 +2,6 @@ package br.com.gamemods.mobai.level
 
 import br.com.gamemods.mobai.math.chunkIndex
 import cn.nukkit.block.Block
-import cn.nukkit.block.BlockIds
-import cn.nukkit.block.BlockWater
 import cn.nukkit.level.BlockPosition
 import cn.nukkit.level.ChunkManager
 import cn.nukkit.level.Level
@@ -48,21 +46,6 @@ class ChunkCache(val level: Level, from: Vector3i, to: Vector3i): ChunkManager {
     fun getBlock(pos: Vector3i) = getChunk(pos).getBlock(pos.chunkIndex())
 
     fun getBlock(pos: BlockPosition) = getChunk(pos).getBlock(pos.chunkIndex())
-
-    fun getWaterDamage(blockPos: Vector3i): Int {
-        val chunk = getChunk(blockPos).takeIf { it !is EmptyChunk } ?: return -1
-        val chunkIndex = blockPos.chunkIndex()
-        for(layer in 0..1) {
-            val block = chunk.getBlock(chunkIndex, layer)
-            if (block.id == BlockIds.AIR) {
-                return -1
-            }
-            if (block is BlockWater) {
-                return block.damage
-            }
-        }
-        return -1
-    }
 
     override fun getBlockIdAt(x: Int, y: Int, z: Int, layer: Int): Identifier {
         val pos = Vector3i(x, y, z)

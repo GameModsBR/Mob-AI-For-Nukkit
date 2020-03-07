@@ -11,9 +11,12 @@ import cn.nukkit.block.BlockTrapdoor
 import cn.nukkit.entity.Attribute.*
 import cn.nukkit.entity.Entity
 import cn.nukkit.entity.EntityDamageable
+import cn.nukkit.entity.Projectile
 import cn.nukkit.entity.data.EntityFlag.GRAVITY
 import cn.nukkit.entity.data.EntityFlag.SPRINTING
 import cn.nukkit.entity.impl.BaseEntity
+import cn.nukkit.event.entity.EntityDamageByEntityEvent
+import cn.nukkit.event.entity.EntityDamageEvent
 import cn.nukkit.level.BlockPosition
 import cn.nukkit.math.MathHelper
 import cn.nukkit.math.Vector3f
@@ -91,11 +94,31 @@ interface SmartEntity: EntityProperties, MoveLogic {
         entity.lastUpdate = currentTick
 
         val needUpdate = entity.entityBaseTick(tickDiff) or
+            updateAttacker() or
             tickMovement(tickDiff)
 
         entity.updateMovement()
         entity.updateData()
         return needUpdate
+    }
+
+    fun updateAttacker(): Boolean {
+        val attacker = attacker ?: return false
+        if (!attacker.isAlive || base.ticksLived - lastAttackedTime > 100) {
+            this.attacker = null
+            return false
+        }
+        return true
+    }
+
+    fun attack(source: EntityDamageEvent): Boolean {
+        var entity = (source as? EntityDamageByEntityEvent)?.damager ?: return true
+        if (entity is Projectile) {
+            entity = entity.shooter ?: return true
+        }
+        attacker = entity
+        lastAttackedTime = base.ticksLived
+        return true
     }
 
     fun tickMovement(tickDiff: Int): Boolean {

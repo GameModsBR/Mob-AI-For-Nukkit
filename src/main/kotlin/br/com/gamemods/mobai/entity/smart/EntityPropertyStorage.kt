@@ -2,6 +2,7 @@ package br.com.gamemods.mobai.entity.smart
 
 import br.com.gamemods.mobai.ai.pathing.PathNodeType
 import cn.nukkit.entity.Attribute
+import cn.nukkit.entity.Entity
 import cn.nukkit.math.Vector3f
 import cn.nukkit.nbt.tag.CompoundTag
 import cn.nukkit.nbt.tag.FloatTag
@@ -33,7 +34,9 @@ class EntityPropertyStorage (
     override var isAiDisabled: Boolean = false,
     override val baseMovementSpeedMultiplier: Float = 0.8F,
     override var noClip: Boolean = false,
-    override var movementMultiplier: Vector3f = Vector3f()
+    override var movementMultiplier: Vector3f = Vector3f(),
+    override var attacker: Entity? = null,
+    override var lastAttackedTime: Int = 0
     //override var climbing: Vector3i? = null
 ) : EntityProperties {
 
@@ -66,6 +69,8 @@ interface EntityProperties {
     val baseMovementSpeedMultiplier: Float
     var noClip: Boolean
     var movementMultiplier: Vector3f
+    var attacker: Entity?
+    var lastAttackedTime: Int
     //var climbing: Vector3i?
     val random: Random get() = ThreadLocalRandom.current()
 

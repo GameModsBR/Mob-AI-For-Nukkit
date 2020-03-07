@@ -5,8 +5,10 @@ import br.com.gamemods.mobai.math.chunkIndex
 import br.com.gamemods.mobai.math.intCeil
 import br.com.gamemods.mobai.math.intFloor
 import cn.nukkit.block.Block
+import cn.nukkit.block.BlockIds
 import cn.nukkit.block.BlockIds.*
 import cn.nukkit.block.BlockLiquid
+import cn.nukkit.block.BlockWater
 import cn.nukkit.entity.Entity
 import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.level.BlockPosition
@@ -171,3 +173,18 @@ operator fun ChunkManager.get(pos: BlockPosition) = get(pos.x, pos.y, pos.z, pos
 
 operator fun ChunkManager.get(x: Int, y: Int, z: Int, layer: Int = 0): Block = if (this is Level) get(x, y, z, layer) else getBlockAt(x, y, z, layer)
 operator fun Level.get(x: Int, y: Int, z: Int, layer: Int = 0) = getBlock(x, y, z, layer)
+
+fun ChunkManager.getWaterDamage(blockPos: Vector3i): Int {
+    val chunk = getChunk(blockPos).takeIf { it !is EmptyChunk } ?: return -1
+    val chunkIndex = blockPos.chunkIndex()
+    for(layer in 0..1) {
+        val block = chunk.getBlock(chunkIndex, layer)
+        if (block.id == BlockIds.AIR) {
+            return -1
+        }
+        if (block is BlockWater) {
+            return block.damage
+        }
+    }
+    return -1
+}

@@ -10,6 +10,7 @@ import br.com.gamemods.mobai.entity.smart.SmartMonster
 import cn.nukkit.entity.EntityType
 import cn.nukkit.entity.hostile.Creeper
 import cn.nukkit.entity.impl.hostile.EntityCreeper
+import cn.nukkit.event.entity.EntityDamageEvent
 import cn.nukkit.level.chunk.Chunk
 import cn.nukkit.nbt.tag.CompoundTag
 import cn.nukkit.player.Player
@@ -27,4 +28,5 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
 
     override fun updateMovement() = super<SmartMonster>.updateMovement()
     override fun onUpdate(currentTick: Int) = super<SmartMonster>.onUpdate(currentTick)
+    override fun attack(source: EntityDamageEvent) = super<EntityCreeper>.attack(source) && super<SmartMonster>.attack(source)
 }
