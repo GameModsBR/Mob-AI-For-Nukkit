@@ -12,7 +12,6 @@ import br.com.gamemods.mobai.math.offsetCopy
 import cn.nukkit.block.BlockIds.*
 import cn.nukkit.entity.Attribute
 import cn.nukkit.entity.Entity
-import cn.nukkit.entity.EntityDamageable
 import cn.nukkit.entity.data.EntityFlag
 import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.entity.impl.EntityLiving
@@ -71,7 +70,7 @@ fun Entity.hasCollision(pos: Vector3f): Boolean {
     return level.hasCollision(this as BaseEntity, box, entities = true, fluids = true)
 }
 
-fun Entity.canTarget(entity: Entity) = (this as? SmartEntity)?.canTarget(entity) ?: entity is EntityDamageable
+fun Entity.canTarget(entity: Entity) = (this as? SmartEntity)?.canTarget(entity) ?: (entity is EntityLiving)
 fun Entity.isTeammate(entity: Entity) = (this as? SmartEntity)?.isTeammate(entity) ?: false
 fun Entity.canSee(entity: Entity) = (this as? SmartEntity)?.canSee(entity) ?: false
 fun Entity.pathFindingPenalty(nodeType: PathNodeType)

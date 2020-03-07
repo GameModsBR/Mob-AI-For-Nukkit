@@ -36,7 +36,9 @@ class EntityPropertyStorage (
     override var noClip: Boolean = false,
     override var movementMultiplier: Vector3f = Vector3f(),
     override var attacker: Entity? = null,
-    override var lastAttackedTime: Int = 0
+    override var lastAttackedTime: Int = 0,
+    override var attacking: Entity? = null,
+    override var lastAttackTime: Int = 0
     //override var climbing: Vector3i? = null
 ) : EntityProperties {
 
@@ -71,6 +73,8 @@ interface EntityProperties {
     var movementMultiplier: Vector3f
     var attacker: Entity?
     var lastAttackedTime: Int
+    var attacking: Entity?
+    var lastAttackTime: Int
     //var climbing: Vector3i?
     val random: Random get() = ThreadLocalRandom.current()
 
