@@ -25,7 +25,15 @@ class GoalSelector {
         disabledControls += control
     }
 
-    fun runningGoals() = goals.asSequence().filter { it.isRunning }
+    fun enableAllControls() {
+        disabledControls.clear()
+    }
+
+    fun disableAllControls() {
+        disabledControls += Goal.Control.values()
+    }
+
+    fun runningGoals(): Sequence<Goal> = goals.asSequence().filter { it.isRunning }
 
     fun tick(): Boolean {
         cleanup()
@@ -70,7 +78,7 @@ class GoalSelector {
             set(_) {}
     }
 
-    open class WeightedGoal(val goal: Goal, val weight: Int): Goal() {
+    private open class WeightedGoal(val goal: Goal, val weight: Int): Goal() {
         open var isRunning = false; protected set
 
         override val controls get() = goal.controls
@@ -122,6 +130,10 @@ class GoalSelector {
 
         override fun hashCode(): Int {
             return goal.hashCode()
+        }
+
+        override fun toString(): String {
+            return "$weight:$goal:$isRunning"
         }
     }
 }
