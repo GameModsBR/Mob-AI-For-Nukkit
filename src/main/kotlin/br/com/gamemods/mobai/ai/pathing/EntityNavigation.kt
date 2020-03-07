@@ -9,7 +9,6 @@ import br.com.gamemods.mobai.level.ChunkCache
 import br.com.gamemods.mobai.level.isAir
 import br.com.gamemods.mobai.math.MobAiMath
 import br.com.gamemods.mobai.math.intFloor
-import cn.nukkit.block.Block
 import cn.nukkit.block.BlockIds
 import cn.nukkit.block.BlockLiquid
 import cn.nukkit.entity.Attribute
@@ -249,15 +248,15 @@ abstract class EntityNavigation<T>(ai: EntityAI<T>) where T: SmartEntity, T: Bas
 
     @Deprecated("Debug")
     fun debugClear() {
-        currentPath?.forEach { entity.level.setBlock(it, Block.get(BlockIds.AIR)) }
+        //currentPath?.forEach { entity.level.setBlock(it, Block.get(BlockIds.AIR)) }
     }
 
     @Deprecated("Debug")
     fun debugPath() {
-        val path = currentPath ?: return
+        /*val path = currentPath ?: return
         path.forEach {
             entity.level.setBlock(it, Block.get(BlockIds.REDSTONE_WIRE))
-        }
+        }*/
         //entity.level.setBlock(path.first(), Block.get(BlockIds.CARPET))
         //entity.level.setBlock(path.last(), Block.get(BlockIds.WOODEN_SLAB))
     }

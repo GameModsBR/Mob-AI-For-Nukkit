@@ -31,7 +31,7 @@ interface Traveller {
     }
 
     fun travel(movementInput: Vector3f) { base.apply { smart.apply {
-        println("TR: $movementInput")
+        //println("TR: $movementInput")
         var d: Double
         var g: Float
         if (!isAiDisabled) {
