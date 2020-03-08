@@ -19,6 +19,8 @@ import cn.nukkit.entity.data.EntityFlag.CHARGED
 import cn.nukkit.entity.data.EntityFlag.IGNITED
 import cn.nukkit.entity.hostile.Creeper
 import cn.nukkit.entity.impl.hostile.EntityCreeper
+import cn.nukkit.entity.passive.Cat
+import cn.nukkit.entity.passive.Ocelot
 import cn.nukkit.event.entity.EntityDamageEvent
 import cn.nukkit.event.entity.EntityExplosionPrimeEvent
 import cn.nukkit.level.Explosion
@@ -34,6 +36,8 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
         : EntityCreeper(type, chunk, nbt), SmartMonster, EntityProperties by EntityPropertyStorage(nbt) {
     override val ai = EntityAI(this).apply {
         goalSelector.add(2, CreeperIgniteGoal(this))
+        goalSelector.add(3, FleeEntityGoal(this, Ocelot::class, 6F, 1.0, 1.2))
+        goalSelector.add(3, FleeEntityGoal(this, Cat::class, 6F, 1.0, 1.2))
         goalSelector.add(4, MeleeAttackGoal(this, 1.0, false))
         goalSelector.add(5, WanderAroundFarGoal(this, 0.8))
         goalSelector.add(6, LookAtEntityGoal(this, Player::class, 8.0))

@@ -44,8 +44,17 @@ data class TargetFilter(
         val INVULNERABLE = { e: Entity -> when {
             !e.isAlive -> true
             e is BaseEntity && e.invulnerable -> true
-            e is Player && (e.isSpectator || e.isCreative) -> true
-            else -> false
+            else -> CREATIVE_SPECTATOR_PLAYER(e)
         } }
+
+        val CREATIVE_SPECTATOR_PLAYER = { e: Entity ->
+            (e is Player && (e.isSpectator || e.isCreative))
+        }
+
+        val NOT_CREATIVE_SPECTATOR_PLAYER = {e: Entity -> !CREATIVE_SPECTATOR_PLAYER(e)}
+        val NOT_INVULNERABLE = {e: Entity -> !INVULNERABLE(e)}
+
+        val AWAYS_TRUE = {_: Any? -> true}
+        val AWAYS_FALSE = {_: Any? -> false}
     }
 }

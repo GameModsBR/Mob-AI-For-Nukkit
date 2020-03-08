@@ -188,7 +188,7 @@ object TargetFinder {
         ai: EntityAI<T>,
         maxHorizontalDistance: Int,
         maxVerticalDistance: Int,
-        pos: Vector3i?
+        pos: Vector3i
     ): Vector3i? where T: SmartEntity, T: BaseEntity {
         val blockPos = ai.entity.asVector3i().subtract(pos)
         return findTarget(
