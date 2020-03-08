@@ -1,5 +1,6 @@
 package br.com.gamemods.mobai.ai.goal
 
+import br.com.gamemods.mobai.ai.filter.TargetFilter
 import br.com.gamemods.mobai.ai.pathing.Path
 import br.com.gamemods.mobai.entity.smart.EntityAI
 import br.com.gamemods.mobai.entity.smart.SmartEntity
@@ -7,7 +8,6 @@ import br.com.gamemods.mobai.math.square
 import cn.nukkit.entity.Entity
 import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.math.Vector3f
-import cn.nukkit.player.Player
 
 open class MeleeAttackGoal<E>(val ai: EntityAI<E>, val speed: Double, val pauseWhenIdle: Boolean): Goal() where E: BaseEntity, E: SmartEntity{
     protected var ticksUntilAttack = 0
@@ -27,7 +27,7 @@ open class MeleeAttackGoal<E>(val ai: EntityAI<E>, val speed: Double, val pauseW
         lastUpdateTime = time
 
         val target = ai.target ?: return false
-        if (!target.isAlive) {
+        if (TargetFilter.INVULNERABLE(target)) {
             return false
         }
         path = ai.navigation.findPathTo(target, 0)
@@ -40,10 +40,9 @@ open class MeleeAttackGoal<E>(val ai: EntityAI<E>, val speed: Double, val pauseW
     override fun shouldContinue(): Boolean {
         val target = ai.target ?: return false
         return when {
-            !target.isAlive -> false
+            TargetFilter.INVULNERABLE(target) -> false
             !pauseWhenIdle -> ai.navigation.isActive
             !ai.isInWalkTargetRange(target.position.asVector3i()) -> false
-            target is Player && (target.isSpectator || target.isCreative) -> false
             else -> true
         }
     }

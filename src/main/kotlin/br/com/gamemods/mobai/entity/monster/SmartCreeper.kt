@@ -39,6 +39,7 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
         goalSelector.add(6, LookAtEntityGoal(this, Player::class, 8.0))
         goalSelector.add(6, LookAroundGoal(this))
         targetSelector.add(1, FollowTargetGoal(this, Player::class, true))
+        targetSelector.add(2, RevengeGoal(this))
     }
 
     var fuseSpeed = -1

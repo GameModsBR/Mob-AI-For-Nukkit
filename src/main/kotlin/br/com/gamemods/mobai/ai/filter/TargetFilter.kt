@@ -40,5 +40,12 @@ data class TargetFilter(
 
     companion object {
         val DEFAULT = TargetFilter()
+
+        val INVULNERABLE = { e: Entity -> when {
+            !e.isAlive -> true
+            e is BaseEntity && e.invulnerable -> true
+            e is Player && (e.isSpectator || e.isCreative) -> true
+            else -> false
+        } }
     }
 }
