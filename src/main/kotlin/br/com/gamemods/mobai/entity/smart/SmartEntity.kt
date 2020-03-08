@@ -5,8 +5,6 @@ import br.com.gamemods.mobai.level.get
 import br.com.gamemods.mobai.level.isClimbable
 import br.com.gamemods.mobai.level.jumpVelocityMultiplier
 import br.com.gamemods.mobai.math.MobAiMath
-import br.com.gamemods.mobai.math.square
-import cn.nukkit.block.BlockLiquid
 import cn.nukkit.block.BlockTrapdoor
 import cn.nukkit.entity.Attribute.*
 import cn.nukkit.entity.Entity
@@ -77,12 +75,13 @@ interface SmartEntity: EntityProperties, MoveLogic {
         }
 
         if (!entity.isAlive) {
-            entity.deadTicks++
+            /*entity.deadTicks++
             if (entity.deadTicks >= 10) {
                 entity.despawnFromAll()
                 entity.close()
             }
-            return entity.deadTicks < 10
+            return entity.deadTicks < 10*/
+            return false
         }
 
         entity.apply {
@@ -162,26 +161,22 @@ interface SmartEntity: EntityProperties, MoveLogic {
         }
 
         if (isJumping) {
-            val waterHeight: Float
+            val waterHeight: Double
             val bl = if (entity.isTouchingWater) {
-                waterHeight = entity.levelBlock.let {
-                    ((it as? BlockLiquid) ?: (it.getBlockAtLayer(1) as? BlockLiquid))?.fluidHeightPercent ?: 0F
-                }
-                waterHeight > 0
+                waterHeight = entity.waterHeight
+                waterHeight > 0.0
             } else {
-                waterHeight = 0F
+                waterHeight = 0.0
                 false
             }
 
-            if (!bl || entity.isOnGround && waterHeight <= 0.4) {
-                if (entity.isInLava) {
-                    swimUpLava()
-                } else if ((entity.isOnGround || bl && waterHeight <= 0.4) && jumpingCooldown == 0) {
-                    jump()
-                    jumpingCooldown = 10
-                }
-            } else {
+            if (bl && (!entity.isOnGround || waterHeight > 0.4)) {
                 swimUpWater()
+            } else if (entity.isInLava) {
+                swimUpLava()
+            } else if ((entity.isOnGround || bl && waterHeight <= 0.4) && jumpingCooldown == 0) {
+                jump()
+                jumpingCooldown = 10
             }
         } else {
             jumpingCooldown = 0
@@ -193,10 +188,10 @@ interface SmartEntity: EntityProperties, MoveLogic {
         //val box = entity.boundingBox.clone()
         travel(Vector3f(sidewaysSpeed.toDouble(), upwardSpeed.toDouble(), forwardSpeed.toDouble()))
         //TODO Remove this debug code
-        if ((ai.navigation.currentTarget?.distanceSquared(base) ?: 0.0) > 20.square()) {
+        /*if ((ai.navigation.currentTarget?.distanceSquared(base) ?: 0.0) > 20.square()) {
             ai.navigation.stop()
             base.kill()
-        }
+        }*/
         //TODO: Skipping push
         //TODO: Skipping tickCramming
 
@@ -208,11 +203,11 @@ interface SmartEntity: EntityProperties, MoveLogic {
     }
 
     fun swimUpLava() {
-
+        base.motion = base.motion.add(0.0, 0.03999999910593033, 0.0)
     }
 
     fun swimUpWater() {
-
+        base.motion = base.motion.add(0.0, 0.03999999910593033, 0.0)
     }
 
     fun jump() { base.apply {
