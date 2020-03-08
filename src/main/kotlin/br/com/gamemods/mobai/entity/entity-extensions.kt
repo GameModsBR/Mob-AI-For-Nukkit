@@ -20,6 +20,7 @@ import cn.nukkit.item.enchantment.Enchantment
 import cn.nukkit.level.BlockPosition
 import cn.nukkit.level.Position
 import cn.nukkit.math.Vector3f
+import cn.nukkit.player.Player
 
 private val defaultProperties = EntityPropertyStorage(0.0)
 
@@ -160,6 +161,19 @@ val Entity.waterHeight: Double get() {
     val water = level[position] as? BlockWater ?: return 0.0
     return water.height - water.y
 }
+
+val Entity.mainHandItem: Item get() = when (this) {
+    is Player -> inventory.itemInHand
+    is SmartEntity -> equipments.mainHand
+    else -> Item.get(AIR)
+}
+
+val Entity.offHandItem: Item get() = when (this) {
+    is SmartEntity -> equipments.offHand
+    else -> Item.get(AIR)
+}
+
+val Entity.handItems get() = arrayOf(mainHandItem, offHandItem)
 
 var Attribute.baseValue: Float
     get() = value

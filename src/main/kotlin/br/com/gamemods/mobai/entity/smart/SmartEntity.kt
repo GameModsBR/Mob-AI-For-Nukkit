@@ -16,6 +16,7 @@ import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.entity.impl.EntityLiving
 import cn.nukkit.event.entity.EntityDamageByEntityEvent
 import cn.nukkit.event.entity.EntityDamageEvent
+import cn.nukkit.item.Item
 import cn.nukkit.level.BlockPosition
 import cn.nukkit.math.MathHelper
 import cn.nukkit.math.Vector3f
@@ -340,4 +341,6 @@ interface SmartEntity: EntityProperties, MoveLogic {
         }
         return bl*/
     }}
+
+    fun isBreedingItem(item: Item) = false
 }

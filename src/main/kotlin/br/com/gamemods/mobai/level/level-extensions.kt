@@ -25,6 +25,10 @@ import kotlin.reflect.KClass
 
 val Level.height: Int get() = if (dimension == Level.DIMENSION_NETHER) 127 else 255
 
+fun Level.findClosestPlayer(filter: TargetFilter, cause: Entity): Player? {
+    return findClosestPlayer(filter, cause, cause.position)
+}
+
 fun Level.findClosestPlayer(filter: TargetFilter, cause: Entity?, position: Vector3f): Player? {
     return findClosestEntity(players.values, filter, cause, position)
 }
