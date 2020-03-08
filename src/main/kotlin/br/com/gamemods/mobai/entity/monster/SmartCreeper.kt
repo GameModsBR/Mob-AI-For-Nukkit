@@ -35,6 +35,7 @@ import cn.nukkit.registry.EntityRegistry
 class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
         : EntityCreeper(type, chunk, nbt), SmartMonster, EntityProperties by EntityPropertyStorage(nbt) {
     override val ai = EntityAI(this).apply {
+        goalSelector.add(1, SwimGoal(this))
         goalSelector.add(2, CreeperIgniteGoal(this))
         goalSelector.add(3, FleeEntityGoal(this, Ocelot::class, 6F, 1.0, 1.2))
         goalSelector.add(3, FleeEntityGoal(this, Cat::class, 6F, 1.0, 1.2))

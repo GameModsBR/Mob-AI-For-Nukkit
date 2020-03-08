@@ -4,12 +4,10 @@ import br.com.gamemods.mobai.ai.pathing.PathNodeType
 import br.com.gamemods.mobai.entity.smart.EntityProperties
 import br.com.gamemods.mobai.entity.smart.EntityPropertyStorage
 import br.com.gamemods.mobai.entity.smart.SmartEntity
-import br.com.gamemods.mobai.level.get
-import br.com.gamemods.mobai.level.getBlockIdAt
-import br.com.gamemods.mobai.level.hasCollision
-import br.com.gamemods.mobai.level.velocityMultiplier
+import br.com.gamemods.mobai.level.*
 import br.com.gamemods.mobai.math.offsetCopy
 import cn.nukkit.block.BlockIds.*
+import cn.nukkit.block.BlockWater
 import cn.nukkit.entity.Attribute
 import cn.nukkit.entity.Entity
 import cn.nukkit.entity.data.EntityData
@@ -156,6 +154,11 @@ fun Entity.addFlags(first: EntityFlag, vararg others: EntityFlag) {
     sequenceOf(first, *others).forEach {
         setFlag(it, true)
     }
+}
+
+val Entity.waterHeight: Double get() {
+    val water = level[position] as? BlockWater ?: return 0.0
+    return water.height - water.y
 }
 
 var Attribute.baseValue: Float
