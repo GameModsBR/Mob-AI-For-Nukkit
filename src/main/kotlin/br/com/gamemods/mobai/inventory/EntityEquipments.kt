@@ -85,4 +85,14 @@ class EntityEquipments(val holder: BaseEntity): AbstractMutableList<Item>() {
         offHand = element
         return old
     }
+
+    fun clearArmor() {
+        armorSlots.fill(EMPTY_ITEM)
+    }
+
+    override fun clear() {
+        clearArmor()
+        mainHand = EMPTY_ITEM
+        offHand = EMPTY_ITEM
+    }
 }

@@ -22,8 +22,8 @@ data class TargetFilter(
         baseEntity == targetEntity -> false
         !targetEntity.isAlive -> false
         targetEntity.isClosed -> false
-        targetEntity is Player && targetEntity.gamemode == Player.SPECTATOR -> false
-        !includeInvulnerable && targetEntity is BaseEntity && targetEntity.invulnerable -> false
+        targetEntity is Player && targetEntity.isSpectator -> false
+        !includeInvulnerable && INVULNERABLE(targetEntity) -> false
         filter?.invoke(targetEntity) == false -> false
         baseEntity == null -> true
         !ignoreEntityTargetRules && !baseEntity.canTarget(targetEntity) -> false

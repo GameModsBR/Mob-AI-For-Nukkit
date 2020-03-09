@@ -5,6 +5,7 @@ import br.com.gamemods.mobai.entity.Flag
 import br.com.gamemods.mobai.entity.IntData
 import br.com.gamemods.mobai.entity.attribute
 import br.com.gamemods.mobai.entity.baseValue
+import br.com.gamemods.mobai.entity.definition.EntityDefinitionIds
 import br.com.gamemods.mobai.entity.smart.EntityAI
 import br.com.gamemods.mobai.entity.smart.EntityProperties
 import br.com.gamemods.mobai.entity.smart.EntityPropertyStorage
@@ -23,11 +24,15 @@ import cn.nukkit.entity.passive.Cat
 import cn.nukkit.entity.passive.Ocelot
 import cn.nukkit.event.entity.EntityDamageEvent
 import cn.nukkit.event.entity.EntityExplosionPrimeEvent
+import cn.nukkit.item.Item
+import cn.nukkit.item.ItemIds
 import cn.nukkit.level.Explosion
 import cn.nukkit.level.Sound
 import cn.nukkit.level.chunk.Chunk
 import cn.nukkit.level.gamerule.GameRules
+import cn.nukkit.math.Vector3f
 import cn.nukkit.nbt.tag.CompoundTag
+import cn.nukkit.network.protocol.LevelSoundEventPacket
 import cn.nukkit.player.Player
 import cn.nukkit.potion.Effect
 import cn.nukkit.registry.EntityRegistry
@@ -53,7 +58,7 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
     var charged by Flag(CHARGED)
     var ignited by Flag(IGNITED)
     var fuseTime = 30
-    var headsDropped = 0
+    private var headsDropped = 0
 
     init { init() }
 
@@ -77,11 +82,20 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
         currentFuseTime = (currentFuseTime + fallDistance * 1.5F).toInt().coerceAtMost(fuseTime - 5)
     }
 
+    fun shouldDropHead() = charged && headsDropped <= 0
+
+    fun onHeadDropped() {
+        headsDropped++
+    }
+
     override fun mobTick(tickDiff: Int): Boolean {
         if (!isAlive) {
             return false
         }
 
+        if (EntityDefinitionIds.FORCED_EXPLODING in definitions) {
+            fuseSpeed = 1
+        }
         ignited = fuseSpeed >= 0
 
         val speed = fuseSpeed
@@ -119,20 +133,39 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
         }
 
         val areaEffectCloud =
-            EntityRegistry.get().newEntity(EntityTypes.AREA_EFFECT_CLOUD, chunk, Entity.getDefaultNBT(position))
-                ?: return
-        areaEffectCloud.radius = 2.5f
-        //areaEffectCloud.setRadiusOnUse(-0.5f)
-        areaEffectCloud.waitTime = 10
-        areaEffectCloud.duration /= 2
-        //areaEffectCloud.setRadiusGrowth(-areaEffectCloud.getRadius() / areaEffectCloud.getDuration() as Float)
+            EntityRegistry.get().newEntity(
+                EntityTypes.AREA_EFFECT_CLOUD,
+                chunk,
+                Entity.getDefaultNBT(position).apply {
+                    putFloat("RadiusOnUse", -0.5F)
+                    putInt("Duration", 300)
+                    putFloat("Radius", 2.5F)
+                    putInt("WaitTime", 10)
+                    putFloat("RadiusPerTick", -2.5F / 300F)
+                }
+            ) ?: return
         for (statusEffectInstance in effects) {
             areaEffectCloud.addEffect(statusEffectInstance)
         }
         areaEffectCloud.spawnToAll()
     }
 
+    override fun onInteract(player: Player?, item: Item, clickedPos: Vector3f?): Boolean {
+        if (item.id == ItemIds.FLINT_AND_STEEL) {
+            item.useOn(this)
+            definitions += EntityDefinitionIds.FORCED_EXPLODING
+            level.addLevelSoundEvent(asVector3f(), LevelSoundEventPacket.SOUND_IGNITE, -1, type)
+            ignited = true
+            return true
+        }
+        return super.onInteract(player, item, clickedPos)
+    }
+
     override fun updateMovement() = super<SmartMonster>.updateMovement()
     override fun onUpdate(currentTick: Int) = super<SmartMonster>.onUpdate(currentTick)
     override fun attack(source: EntityDamageEvent) = super<EntityCreeper>.attack(source) && super<SmartMonster>.attack(source)
+    override fun saveNBT() {
+        super<EntityCreeper>.saveNBT()
+        super<SmartMonster>.saveNBT()
+    }
 }

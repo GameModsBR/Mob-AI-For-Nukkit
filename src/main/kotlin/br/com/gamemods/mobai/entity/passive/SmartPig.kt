@@ -48,4 +48,8 @@ class SmartPig(type: EntityType<Pig>, chunk: Chunk, tag: CompoundTag)
     override fun updateMovement() = super<SmartAnimal>.updateMovement()
     override fun onUpdate(currentTick: Int) = super<SmartAnimal>.onUpdate(currentTick)
     override fun attack(source: EntityDamageEvent) = super<EntityPig>.attack(source) && super<SmartAnimal>.attack(source)
+    override fun saveNBT() {
+        super<EntityPig>.saveNBT()
+        super<SmartAnimal>.saveNBT()
+    }
 }

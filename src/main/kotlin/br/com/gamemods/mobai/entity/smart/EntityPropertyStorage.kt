@@ -1,6 +1,7 @@
 package br.com.gamemods.mobai.entity.smart
 
 import br.com.gamemods.mobai.ai.pathing.PathNodeType
+import br.com.gamemods.mobai.entity.definition.EntityDefinitionCollection
 import cn.nukkit.entity.Attribute
 import cn.nukkit.entity.Entity
 import cn.nukkit.math.Vector3f
@@ -24,6 +25,7 @@ class EntityPropertyStorage (
     override val lookYawSpeed: Double = 10.0,
     override val attackDistanceScalingFactor: Double = 1.0,
     override val attributes: MutableMap<Int, Attribute> = mutableMapOf(),
+    override val definitions: EntityDefinitionCollection = EntityDefinitionCollection(),
     override val pathFindingPenalties: EnumMap<PathNodeType, Float> = EnumMap<PathNodeType, Float>(PathNodeType::class.java),
     override val stepHeight: Float = 0.6F,
     override val safeFallDistance: Int = 3,
@@ -62,6 +64,7 @@ interface EntityProperties {
     val lookYawSpeed: Double
     val attackDistanceScalingFactor: Double
     val attributes: MutableMap<Int, Attribute>
+    val definitions: EntityDefinitionCollection
     val pathFindingPenalties: EnumMap<PathNodeType, Float>
     val stepHeight: Float
     val safeFallDistance: Int
