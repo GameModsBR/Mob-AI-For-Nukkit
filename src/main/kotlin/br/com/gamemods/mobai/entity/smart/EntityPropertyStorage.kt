@@ -44,9 +44,9 @@ class EntityPropertyStorage (
     override var distanceTraveled: Float = 0F,
     override var nextStepSoundDistance: Float = 0F,
     override var simpleStepSound: SimpleSound? = null,
-    override val healthAttribute: Attribute = Attribute.getAttribute(Attribute.MAX_HEALTH)
+    override val healthAttribute: Attribute = Attribute.getAttribute(Attribute.MAX_HEALTH),
+    override var expDrop: IntRange = IntRange.EMPTY
 ) : EntityProperties {
-
     constructor(nbt: CompoundTag) : this(
         nbt.getList("Rotation", FloatTag::class.java)[0].data.toDouble()
     )
@@ -85,6 +85,7 @@ interface EntityProperties {
     var nextStepSoundDistance: Float
     var simpleStepSound: SimpleSound?
     val healthAttribute: Attribute
+    var expDrop: IntRange
     val random: Random get() = ThreadLocalRandom.current()
 
     fun addAttribute(attribute: Attribute) {

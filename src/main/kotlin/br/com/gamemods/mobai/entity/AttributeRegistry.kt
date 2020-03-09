@@ -23,6 +23,7 @@ object AttributeRegistry {
     }
 
     fun load(name: String, minValue: Float, maxValue: Float, defaultValue: Float, currentValue: Float, shouldSend: Boolean = true): Attribute {
+        require(name.isNotBlank()) { "Name must not be blank" }
         return getOrRegister(name, minValue, maxValue, defaultValue, shouldSend).also {
             it.minValue = minValue
             it.maxValue = maxValue

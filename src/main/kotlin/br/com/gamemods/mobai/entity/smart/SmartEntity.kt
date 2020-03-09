@@ -13,6 +13,7 @@ import br.com.gamemods.mobai.nbt.listen
 import cn.nukkit.block.BlockTrapdoor
 import cn.nukkit.entity.Attribute.*
 import cn.nukkit.entity.Entity
+import cn.nukkit.entity.EntityOwnable
 import cn.nukkit.entity.Projectile
 import cn.nukkit.entity.data.EntityFlag.*
 import cn.nukkit.entity.impl.BaseEntity
@@ -27,6 +28,7 @@ import cn.nukkit.nbt.NBTIO
 import cn.nukkit.nbt.tag.CompoundTag
 import cn.nukkit.nbt.tag.ListTag
 import cn.nukkit.nbt.tag.StringTag
+import cn.nukkit.player.Player
 import cn.nukkit.potion.Effect
 import kotlin.math.abs
 
@@ -368,6 +370,21 @@ interface SmartEntity: MoveLogic {
 
     fun isBreedingItem(item: Item) = false
 
+    fun kill() {
+        val attacker = attacker
+        if (attacker !is Player && (attacker !is EntityOwnable || attacker.owner !is Player)) {
+            return
+        }
+
+        val range = expDrop.takeUnless { it.isEmpty() || it.last <= 0 } ?: return
+        val drops = range.first.coerceAtLeast(0) + random.nextInt(range.last + 1)
+        if (drops > 0) {
+            entity.apply {
+                level.dropExpOrb(position, drops)
+            }
+        }
+    }
+
     fun saveNBT() {
         val nbt = base.namedTag
         saveEquipments(nbt)
@@ -396,6 +413,7 @@ interface SmartEntity: MoveLogic {
         ListTag<CompoundTag>("Attributes").apply {
             attributes.values.forEach { attribute ->
                 add(CompoundTag()
+                    .putString("Name", attribute.name)
                     .putFloat("Base", attribute.defaultValue)
                     .putFloat("Current", attribute.value)
                     .putFloat("Max", attribute.maxValue)
@@ -409,7 +427,7 @@ interface SmartEntity: MoveLogic {
     fun loadAttributes(nbt: CompoundTag) {
         nbt.listenList<CompoundTag>("Attributes") { list ->
             list.forEach {
-                val name = it.getString("Name")
+                val name = it.getString("Name").takeIf { n-> n.isNotBlank() } ?: return@forEach
                 val base = it.getFloat("Base")
                 val current = it.getFloat("Current")
                 val max = it.getFloat("Max")

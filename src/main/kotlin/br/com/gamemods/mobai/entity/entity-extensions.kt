@@ -179,6 +179,8 @@ val Entity.offHandItem: Item get() = when (this) {
 
 val Entity.handItems get() = arrayOf(mainHandItem, offHandItem)
 
+val Entity.lootingLevel get() = mainHandItem.getEnchantment(Enchantment.ID_LOOTING)?.level ?: 0
+
 var Attribute.baseValue: Float
     get() = value
     set(value) {

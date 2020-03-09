@@ -18,13 +18,17 @@ import cn.nukkit.entity.data.EntityFlag
 import cn.nukkit.entity.data.EntityFlag.IGNITED
 import cn.nukkit.entity.data.EntityFlag.POWERED
 import cn.nukkit.entity.hostile.Creeper
+import cn.nukkit.entity.hostile.Skeleton
+import cn.nukkit.entity.hostile.Stray
 import cn.nukkit.entity.impl.hostile.EntityCreeper
+import cn.nukkit.entity.misc.LightningBolt
 import cn.nukkit.entity.passive.Cat
 import cn.nukkit.entity.passive.Ocelot
 import cn.nukkit.event.entity.EntityDamageEvent
 import cn.nukkit.event.entity.EntityExplosionPrimeEvent
 import cn.nukkit.item.Item
-import cn.nukkit.item.ItemIds
+import cn.nukkit.item.ItemIds.*
+import cn.nukkit.item.ItemSkull
 import cn.nukkit.level.Explosion
 import cn.nukkit.level.Sound
 import cn.nukkit.level.chunk.Chunk
@@ -50,6 +54,8 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
         targetSelector.add(1, FollowTargetGoal(this, Player::class, true))
         targetSelector.add(2, RevengeGoal(this))
     }
+
+    override var expDrop = 5..5
 
     var fuseSpeed = -1
     var explosionRadius = 3
@@ -172,7 +178,7 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
     }
 
     override fun onInteract(player: Player?, item: Item, clickedPos: Vector3f?): Boolean {
-        if (item.id == ItemIds.FLINT_AND_STEEL) {
+        if (item.id == FLINT_AND_STEEL) {
             item.useOn(this)
             definitions += FORCED_EXPLODING
             level.addLevelSoundEvent(asVector3f(), LevelSoundEventPacket.SOUND_IGNITE, -1, type)
@@ -192,12 +198,53 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
         return super.setFlag(flag, value)
     }
 
+    override fun onStruckByLightning(lightningBolt: LightningBolt?) {
+        val bolt = lightningBolt ?: return super.onStruckByLightning(lightningBolt)
+        setPowered(bolt)
+    }
+
+    override fun getDrops(): Array<Item> {
+        val attacker = attacker
+        val drops = mutableListOf<Item>()
+        val random = random
+        val looting = attacker?.lootingLevel ?: 0
+        random.nextInt(3 + looting).takeIf { it > 0 }?.let {
+            drops += Item.get(GUNPOWDER, 0, it)
+        }
+        if (attacker is Skeleton || attacker is Stray) {
+            drops += arrayOf(
+                RECORD_13,
+                RECORD_CAT,
+                RECORD_BLOCKS,
+                RECORD_CHIRP,
+                RECORD_FAR,
+                RECORD_MALL,
+                RECORD_MELLOHI,
+                RECORD_STAL,
+                RECORD_STRAD,
+                RECORD_WARD,
+                RECORD_11,
+                RECORD_WAIT
+            ).let { Item.get(it[random.nextInt(it.size)]) }
+        } else if (attacker is SmartCreeper && attacker.shouldDropHead()) {
+            attacker.onHeadDropped()
+            drops += Item.get(SKULL, ItemSkull.CREEPER_HEAD)
+        }
+        return drops.toTypedArray()
+    }
+
     override fun updateMovement() = super<SmartMonster>.updateMovement()
     override fun onUpdate(currentTick: Int) = super<SmartMonster>.onUpdate(currentTick)
     override fun attack(source: EntityDamageEvent) = super<EntityCreeper>.attack(source) && super<SmartMonster>.attack(source)
+
     override fun saveNBT() {
         super<EntityCreeper>.saveNBT()
         super<SmartMonster>.saveNBT()
+    }
+
+    override fun kill() {
+        super<EntityCreeper>.kill()
+        super<SmartMonster>.kill()
     }
 
     override var maxHealth = 20F
