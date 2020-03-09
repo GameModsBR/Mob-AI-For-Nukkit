@@ -16,7 +16,6 @@ import cn.nukkit.entity.Entity
 import cn.nukkit.entity.EntityType
 import cn.nukkit.entity.EntityTypes
 import cn.nukkit.entity.data.EntityData.FUSE_LENGTH
-import cn.nukkit.entity.data.EntityFlag.CHARGED
 import cn.nukkit.entity.data.EntityFlag.IGNITED
 import cn.nukkit.entity.hostile.Creeper
 import cn.nukkit.entity.impl.hostile.EntityCreeper
@@ -55,17 +54,38 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
     var fuseSpeed = -1
     var explosionRadius = 3
     var currentFuseTime by IntData(FUSE_LENGTH)
-    var charged by Flag(CHARGED)
     var ignited by Flag(IGNITED)
     var fuseTime = 30
     private var headsDropped = 0
 
     init { init() }
 
+    override fun saveSpecificData(nbt: CompoundTag) {
+        CompoundTag().apply {
+            putByte("FuseSpeed", fuseSpeed)
+            putShort("ExplosionRadius", explosionRadius)
+            putShort("FuseTime", fuseTime)
+            putByte("HeadsDropped", headsDropped)
+            nbt.putCompound("SmartCreeper", this)
+        }
+        nbt.putByte("Fuse", currentFuseTime)
+        nbt.putBoolean("IsFuseLit", ignited)
+    }
+
+    override fun loadSpecificData(nbt: CompoundTag) {
+        nbt.listenCompound("SmartCreeper") { data ->
+            data.listenByte("FuseSpeed") { fuseSpeed = it.toInt() }
+            data.listenShort("ExplosionRadius") { explosionRadius = it.toInt() }
+            data.listenShort("FuseTime") { fuseTime = it.toInt() }
+            data.listenByte("HeadsDropped") { headsDropped = it.toInt() }
+        }
+        nbt.listenByte("Fuse") { currentFuseTime = it.toInt() }
+        nbt.listenBoolean("IsFuseLit") { ignited = it }
+    }
+
     override fun initData() {
         super.initData()
         currentFuseTime = 0
-        charged = false
         ignited = false
     }
 
@@ -82,7 +102,7 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
         currentFuseTime = (currentFuseTime + fallDistance * 1.5F).toInt().coerceAtMost(fuseTime - 5)
     }
 
-    fun shouldDropHead() = charged && headsDropped <= 0
+    fun shouldDropHead() = isPowered && headsDropped <= 0
 
     fun onHeadDropped() {
         headsDropped++
@@ -155,7 +175,6 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
             item.useOn(this)
             definitions += EntityDefinitionIds.FORCED_EXPLODING
             level.addLevelSoundEvent(asVector3f(), LevelSoundEventPacket.SOUND_IGNITE, -1, type)
-            ignited = true
             return true
         }
         return super.onInteract(player, item, clickedPos)
@@ -167,5 +186,11 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
     override fun saveNBT() {
         super<EntityCreeper>.saveNBT()
         super<SmartMonster>.saveNBT()
+    }
+
+    override var maxHealth = 20F
+    override fun setMaxHealth(maxHealth: Int) {
+        super.setMaxHealth(maxHealth)
+        this.maxHealth = maxHealth.toFloat()
     }
 }

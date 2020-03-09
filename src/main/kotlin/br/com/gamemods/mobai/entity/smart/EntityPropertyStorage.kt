@@ -43,7 +43,8 @@ class EntityPropertyStorage (
     override var lastAttackTime: Int = 0,
     override var distanceTraveled: Float = 0F,
     override var nextStepSoundDistance: Float = 0F,
-    override var simpleStepSound: SimpleSound? = null
+    override var simpleStepSound: SimpleSound? = null,
+    override val healthAttribute: Attribute = Attribute.getAttribute(Attribute.MAX_HEALTH)
 ) : EntityProperties {
 
     constructor(nbt: CompoundTag) : this(
@@ -83,10 +84,20 @@ interface EntityProperties {
     var distanceTraveled: Float
     var nextStepSoundDistance: Float
     var simpleStepSound: SimpleSound?
+    val healthAttribute: Attribute
     val random: Random get() = ThreadLocalRandom.current()
 
     fun addAttribute(attribute: Attribute) {
-        attributes[attribute.id] = attribute
+        if (attribute.id == Attribute.MAX_HEALTH) {
+            val healthAttribute = healthAttribute
+            healthAttribute.minValue = attribute.minValue
+            healthAttribute.maxValue = attribute.maxValue
+            healthAttribute.defaultValue = attribute.defaultValue
+            healthAttribute.value = attribute.value
+            attributes[attribute.id] = healthAttribute
+        } else {
+            attributes[attribute.id] = attribute
+        }
     }
 
     fun addAttribute(id: Int) {

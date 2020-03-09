@@ -4,7 +4,6 @@ import br.com.gamemods.mobai.ai.goal.*
 import br.com.gamemods.mobai.entity.attribute
 import br.com.gamemods.mobai.entity.baseValue
 import br.com.gamemods.mobai.entity.smart.*
-import cn.nukkit.entity.Attribute.MAX_HEALTH
 import cn.nukkit.entity.Attribute.MOVEMENT_SPEED
 import cn.nukkit.entity.EntityType
 import cn.nukkit.entity.impl.passive.EntityPig
@@ -34,7 +33,6 @@ class SmartPig(type: EntityType<Pig>, chunk: Chunk, tag: CompoundTag)
 
     override fun initAttributes() {
         super.initAttributes()
-        attribute(MAX_HEALTH).baseValue = 10F
         attribute(MOVEMENT_SPEED).baseValue = 0.25F
 
         simpleStepSound = SimpleSound(Sound.MOB_PIG_STEP)
@@ -51,5 +49,11 @@ class SmartPig(type: EntityType<Pig>, chunk: Chunk, tag: CompoundTag)
     override fun saveNBT() {
         super<EntityPig>.saveNBT()
         super<SmartAnimal>.saveNBT()
+    }
+
+    override var maxHealth = 20F
+    override fun setMaxHealth(maxHealth: Int) {
+        super.setMaxHealth(maxHealth)
+        this.maxHealth = maxHealth.toFloat()
     }
 }

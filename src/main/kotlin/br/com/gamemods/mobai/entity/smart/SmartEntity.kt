@@ -29,8 +29,9 @@ import cn.nukkit.nbt.tag.StringTag
 import cn.nukkit.potion.Effect
 import kotlin.math.abs
 
-interface SmartEntity: EntityProperties, MoveLogic {
+interface SmartEntity: MoveLogic {
     val ai: EntityAI<*>
+    var maxHealth: Float
     val equipments get() = ai.equipments
 
     private inline val entity get() = this as Entity
@@ -65,6 +66,7 @@ interface SmartEntity: EntityProperties, MoveLogic {
     fun init() {
         initData()
         initAttributes()
+        loadNBT()
     }
 
     fun initDefinitions() {
@@ -78,20 +80,24 @@ interface SmartEntity: EntityProperties, MoveLogic {
     fun initAttributes() {
         entity.movementSpeed = 0F
         addAttributes(
-            MAX_HEALTH,
             KNOCKBACK_RESISTANCE,
             MOVEMENT_SPEED,
             UNDERWATER_MOVEMENT,
             FOLLOW_RANGE,
             ABSORPTION
         )
+        addAttribute(healthAttribute)
         entity.apply {
             attribute(ABSORPTION).maxValue = 16F
         }
     }
 
+    fun setMaxHealth(maxHealth: Int)
+
     fun onUpdate(currentTick: Int): Boolean {
         val entity = base
+        healthAttribute.value = entity.health
+        healthAttribute.maxValue = maxHealth
         if (entity.closed) {
             return false
         }
@@ -360,11 +366,13 @@ interface SmartEntity: EntityProperties, MoveLogic {
     }}
 
     fun isBreedingItem(item: Item) = false
+
     fun saveNBT() {
         val nbt = base.namedTag
         saveEquipments(nbt)
         saveAttributes(nbt)
         saveDefinitions(nbt)
+        saveSpecificData(nbt)
     }
 
     fun loadNBT() {
@@ -372,6 +380,13 @@ interface SmartEntity: EntityProperties, MoveLogic {
         loadEquipments(nbt)
         loadAttributes(nbt)
         loadDefinitions(nbt)
+        loadSpecificData(nbt)
+    }
+
+    fun loadSpecificData(nbt: CompoundTag) {
+    }
+
+    fun saveSpecificData(nbt: CompoundTag) {
     }
 
     fun saveAttributes(nbt: CompoundTag) {
