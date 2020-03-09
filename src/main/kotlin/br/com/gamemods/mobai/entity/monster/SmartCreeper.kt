@@ -1,11 +1,9 @@
 package br.com.gamemods.mobai.entity.monster
 
 import br.com.gamemods.mobai.ai.goal.*
-import br.com.gamemods.mobai.entity.Flag
-import br.com.gamemods.mobai.entity.IntData
-import br.com.gamemods.mobai.entity.attribute
-import br.com.gamemods.mobai.entity.baseValue
-import br.com.gamemods.mobai.entity.definition.EntityDefinitionIds
+import br.com.gamemods.mobai.entity.*
+import br.com.gamemods.mobai.entity.definition.EntityDefinitionIds.CHARGED_CREEPER
+import br.com.gamemods.mobai.entity.definition.EntityDefinitionIds.FORCED_EXPLODING
 import br.com.gamemods.mobai.entity.smart.EntityAI
 import br.com.gamemods.mobai.entity.smart.EntityProperties
 import br.com.gamemods.mobai.entity.smart.EntityPropertyStorage
@@ -16,7 +14,9 @@ import cn.nukkit.entity.Entity
 import cn.nukkit.entity.EntityType
 import cn.nukkit.entity.EntityTypes
 import cn.nukkit.entity.data.EntityData.FUSE_LENGTH
+import cn.nukkit.entity.data.EntityFlag
 import cn.nukkit.entity.data.EntityFlag.IGNITED
+import cn.nukkit.entity.data.EntityFlag.POWERED
 import cn.nukkit.entity.hostile.Creeper
 import cn.nukkit.entity.impl.hostile.EntityCreeper
 import cn.nukkit.entity.passive.Cat
@@ -68,8 +68,6 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
             putByte("HeadsDropped", headsDropped)
             nbt.putCompound("SmartCreeper", this)
         }
-        nbt.putByte("Fuse", currentFuseTime)
-        nbt.putBoolean("IsFuseLit", ignited)
     }
 
     override fun loadSpecificData(nbt: CompoundTag) {
@@ -79,14 +77,17 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
             data.listenShort("FuseTime") { fuseTime = it.toInt() }
             data.listenByte("HeadsDropped") { headsDropped = it.toInt() }
         }
-        nbt.listenByte("Fuse") { currentFuseTime = it.toInt() }
-        nbt.listenBoolean("IsFuseLit") { ignited = it }
     }
 
     override fun initData() {
         super.initData()
         currentFuseTime = 0
         ignited = false
+        if (CHARGED_CREEPER in definitions) {
+            isPowered = true
+        } else {
+            definitions[CHARGED_CREEPER] = isPowered
+        }
     }
 
     override fun initAttributes() {
@@ -113,7 +114,7 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
             return false
         }
 
-        if (EntityDefinitionIds.FORCED_EXPLODING in definitions) {
+        if (FORCED_EXPLODING in definitions) {
             fuseSpeed = 1
         }
         ignited = fuseSpeed >= 0
@@ -173,11 +174,22 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
     override fun onInteract(player: Player?, item: Item, clickedPos: Vector3f?): Boolean {
         if (item.id == ItemIds.FLINT_AND_STEEL) {
             item.useOn(this)
-            definitions += EntityDefinitionIds.FORCED_EXPLODING
+            definitions += FORCED_EXPLODING
             level.addLevelSoundEvent(asVector3f(), LevelSoundEventPacket.SOUND_IGNITE, -1, type)
             return true
         }
         return super.onInteract(player, item, clickedPos)
+    }
+
+    override fun setFlag(flag: EntityFlag, value: Boolean) {
+        if (flag == POWERED) {
+            val oldValue = super.setFlag(flag, value)
+            ifNotOnInit {
+                definitions[CHARGED_CREEPER] = value
+            }
+            return oldValue
+        }
+        return super.setFlag(flag, value)
     }
 
     override fun updateMovement() = super<SmartMonster>.updateMovement()

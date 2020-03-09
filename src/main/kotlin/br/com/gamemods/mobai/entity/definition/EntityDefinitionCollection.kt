@@ -86,6 +86,14 @@ class EntityDefinitionCollection(baseDefinitions: Collection<EntityDefinition>):
         custom.asSequence().filter { it.operation == ADD }
     ).flatMap { it }
 
+    operator fun set(id: Identifier, value: Boolean) {
+        if (value) {
+            add(id)
+        } else {
+            remove(id)
+        }
+    }
+
     private inner class DefinitionIterator: MutableIterator<EntityDefinition> {
         private val iter = createSequence().iterator()
 

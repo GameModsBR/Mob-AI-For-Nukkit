@@ -7,7 +7,7 @@ object AttributeRegistry {
     private val freeAttributeIds = generateSequence(1000) { it + 1 }
         .filter {
             try { Attribute.getAttribute(it); false }
-            catch (e: ServerException) { true }
+            catch (_: ServerException) { true }
         }.iterator()
 
     fun getOrRegister(name: String, minValue: Float, maxValue: Float, defaultValue: Float, shouldSend: Boolean = true): Attribute {

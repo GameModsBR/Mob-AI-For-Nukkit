@@ -3,6 +3,7 @@ package br.com.gamemods.mobai.entity.smart
 import br.com.gamemods.mobai.ExtraAttributeIds.UNDERWATER_MOVEMENT
 import br.com.gamemods.mobai.entity.*
 import br.com.gamemods.mobai.entity.definition.EntityDefinition
+import br.com.gamemods.mobai.entity.definition.EntityPersistence
 import br.com.gamemods.mobai.level.get
 import br.com.gamemods.mobai.level.isClimbable
 import br.com.gamemods.mobai.level.jumpVelocityMultiplier
@@ -372,6 +373,7 @@ interface SmartEntity: MoveLogic {
         saveEquipments(nbt)
         saveAttributes(nbt)
         saveDefinitions(nbt)
+        saveCommonData(nbt)
         saveSpecificData(nbt)
     }
 
@@ -380,6 +382,7 @@ interface SmartEntity: MoveLogic {
         loadEquipments(nbt)
         loadAttributes(nbt)
         loadDefinitions(nbt)
+        loadCommonData(nbt)
         loadSpecificData(nbt)
     }
 
@@ -466,5 +469,15 @@ interface SmartEntity: MoveLogic {
                 definitions += EntityDefinition(it.data)
             }
         }
+    }
+
+    fun saveCommonData(nbt: CompoundTag) {
+        EntityPersistence.saveFlags(entity, nbt)
+        EntityPersistence.saveData(entity, nbt)
+    }
+
+    fun loadCommonData(nbt: CompoundTag) {
+        EntityPersistence.loadFlags(entity, nbt)
+        EntityPersistence.loadData(entity, nbt)
     }
 }

@@ -185,3 +185,16 @@ var Attribute.baseValue: Float
         this.defaultValue = value
         this.value = value
     }
+
+// The way Nukkit designed entities makes this get called before this object is fully setup,
+// causing NPE on instantiation
+inline fun SmartEntity.ifNotOnInit(action: () -> Unit) {
+    try {
+        definitions.hashCode()
+    } catch (_: NullPointerException) {
+        return
+    }
+
+    action()
+}
+
