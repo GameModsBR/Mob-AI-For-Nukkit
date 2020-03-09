@@ -8,7 +8,7 @@ data class EntityDefinition(
     val operation: DefinitionOperation = DefinitionOperation.ADD
 ) {
     private constructor(parts: List<String>): this(
-        namespace = parts.first().removePrefix("+").removePrefix("-"),
+        namespace = if (parts.size == 1)  "minecraft" else parts.first().removePrefix("+").removePrefix("-"),
         name = parts.getOrNull(1) ?: parts.first().removePrefix("+").removePrefix("-"),
         operation = when (parts.first().first()) {
             '+' -> DefinitionOperation.ADD
