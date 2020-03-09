@@ -22,6 +22,8 @@ import cn.nukkit.math.Vector3f
 import cn.nukkit.math.Vector3i
 import cn.nukkit.player.Player
 import kotlin.reflect.KClass
+import kotlin.reflect.full.cast
+import kotlin.reflect.full.safeCast
 
 val Level.height: Int get() = if (dimension == Level.DIMENSION_NETHER) 127 else 255
 
@@ -47,6 +49,39 @@ fun Level.findClosestEntity(
             this
         }
     }, targetFilter, cause, position)
+}
+
+inline fun <reified E: Entity> Level.findEntities(
+    bb: AxisAlignedBB,
+    collisionCheck: Entity? = null,
+    noinline filter: ((E) -> Boolean)? = null
+): Collection<E> = findEntities(E::class, bb, collisionCheck, filter)
+
+fun <E: Entity> Level.findEntities(
+    filterClass: KClass<E>,
+    bb: AxisAlignedBB,
+    collisionCheck: Entity? = null,
+    filter: ((E) -> Boolean)? = null
+): Collection<E> {
+    return getCollidingEntities(bb, collisionCheck)
+        .asSequence()
+        .run {
+            if (filterClass != Entity::class) {
+                mapNotNull { filterClass.safeCast(it) }
+            } else {
+                map { filterClass.cast(it) }
+            }
+        }
+        .run {
+            filter?.let { filter(it) } ?: this
+        }
+        .toList()
+}
+
+fun <T: Entity> Collection<T>.closestTo(pos: Vector3f): Pair<T, Double>? {
+    return asSequence()
+        .map { it to (it as? Vector3f ?: it.position).distanceSquared(pos) }
+        .maxBy { it.second }
 }
 
 private fun <T : Entity> findClosestEntity(

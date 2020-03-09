@@ -1,5 +1,7 @@
 package br.com.gamemods.mobai.math
 
+import cn.nukkit.entity.Entity
+import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.level.BlockPosition
 import cn.nukkit.level.Level
 import cn.nukkit.math.Vector3f
@@ -52,3 +54,22 @@ operator fun Vector3f.plus(other: Vector3i) = Vector3f(x + other.x, y + other.y,
 operator fun Vector3f.minus(other: Vector3i) = Vector3f(x - other.x, y-+ other.y, z - other.z)
 operator fun Vector3f.times(other: Vector3i) = Vector3f(x * other.x, y*+ other.y, z * other.z)
 operator fun Vector3f.div(other: Vector3i) = Vector3f(x / other.x, y/+ other.y, z / other.z)
+
+fun Vector3f.distanceSquared(entity: Entity) = distanceSquared(entity as? Vector3f ?: entity.position)
+fun Vector3i.distanceSquared(entity: Entity) = distanceSquared(entity as? Vector3f ?: entity.position)
+fun Vector3f.distance(entity: Entity) = distance(entity as? Vector3f ?: entity.position)
+fun Vector3i.distance(entity: Entity) = distance(entity as? Vector3f ?: entity.position)
+
+fun Entity.distanceSquared(other: Vector3i) = (this as? Vector3f ?: position).distanceSquared(other)
+fun Entity.distanceSquared(other: Vector3f) = (this as? Vector3f ?: position).distanceSquared(other)
+fun Entity.distanceSquared(other: Entity) = (this as? Vector3f ?: position).distanceSquared(other)
+fun Entity.distanceSquared(other: BaseEntity) = (this as? Vector3f ?: position).distanceSquared(other)
+
+fun BaseEntity.distanceSquared(other: Entity) = (this as Vector3f).distanceSquared(other)
+
+fun Entity.distance(other: Vector3i) = (this as? Vector3f ?: position).distance(other)
+fun Entity.distance(other: Vector3f) = (this as? Vector3f ?: position).distance(other)
+fun Entity.distance(other: Entity) = (this as? Vector3f ?: position).distance(other)
+fun Entity.distance(other: BaseEntity) = (this as? Vector3f ?: position).distance(other)
+
+fun BaseEntity.distance(other: Entity) = (this as Vector3f).distance(other)
