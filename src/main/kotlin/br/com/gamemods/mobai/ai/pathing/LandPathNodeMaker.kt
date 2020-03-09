@@ -1,10 +1,8 @@
 package br.com.gamemods.mobai.ai.pathing
 
 import br.com.gamemods.mobai.entity.isTouchingWater
-import br.com.gamemods.mobai.entity.pathFindingPenalty
-import br.com.gamemods.mobai.entity.properties
-import br.com.gamemods.mobai.entity.propertiesOrNul
 import br.com.gamemods.mobai.entity.smart.EntityAI
+import br.com.gamemods.mobai.entity.smart.SmartEntity
 import br.com.gamemods.mobai.level.*
 import br.com.gamemods.mobai.level.FutureBlockIds.BLUE_FIRE
 import br.com.gamemods.mobai.math.intFloor
@@ -21,10 +19,10 @@ import cn.nukkit.math.Vector3i
 import java.util.*
 import kotlin.math.max
 
-open class LandPathNodeMaker: PathNodeMaker() {
+open class LandPathNodeMaker<E>: PathNodeMaker<E>() where E: SmartEntity, E: BaseEntity{
     var waterPathNodeTypeWeight = PathNodeType.WATER.defaultPenalty
 
-    override fun init(chunkCache: ChunkCache, ai: EntityAI<*>, entity: Entity) {
+    override fun init(chunkCache: ChunkCache, ai: EntityAI<E>, entity: E) {
         super.init(chunkCache, ai, entity)
         waterPathNodeTypeWeight = entity.pathFindingPenalty(PathNodeType.WATER)
     }
@@ -72,14 +70,14 @@ open class LandPathNodeMaker: PathNodeMaker() {
         return this.createNode(entityPos)
     }
 
-    private fun nodeType(entity: Entity, pos: Vector3i) = nodeType(entity, pos.x, pos.y, pos.z)
+    private fun nodeType(entity: E, pos: Vector3i) = nodeType(entity, pos.x, pos.y, pos.z)
 
-    private fun nodeType(entity: Entity, x: Int, y: Int, z: Int): PathNodeType {
+    private fun nodeType(entity: E, x: Int, y: Int, z: Int): PathNodeType {
         return nodeType(checkNotNull(chunkCache), Vector3i(x, y, z), entity, sizeX, sizeY, sizeZ, canOpenDoors, canEnterOpenDoors)
     }
 
     override fun clear() {
-        ai?.entity?.propertiesOrNul?.pathFindingPenalties?.put(PathNodeType.WATER, waterPathNodeTypeWeight)
+        ai?.entity?.pathFindingPenalties?.put(PathNodeType.WATER, waterPathNodeTypeWeight)
         super.clear()
     }
 
@@ -94,7 +92,7 @@ open class LandPathNodeMaker: PathNodeMaker() {
             maxYStep = if (pathNodeType2 == PathNodeType.STICKY_HONEY) {
                 0
             } else {
-                1F.coerceAtLeast(entity.properties.stepHeight).intFloor()
+                1F.coerceAtLeast(entity.stepHeight).intFloor()
             }
         }
 
@@ -256,7 +254,7 @@ open class LandPathNodeMaker: PathNodeMaker() {
                     return pathNode3
                 }
                 pathNode3 = createNode(currentPos)
-                if (fallDistance++ >= entity.properties.safeFallDistance) {
+                if (fallDistance++ >= entity.safeFallDistance) {
                     pathNode3.type = PathNodeType.BLOCKED
                     pathNode3.penalty = -1.0f
                     return pathNode3
@@ -286,7 +284,7 @@ open class LandPathNodeMaker: PathNodeMaker() {
     override fun nodeType(
         levelView: ChunkManager,
         pos: Vector3i,
-        entity: Entity,
+        entity: E,
         sizeX: Int,
         sizeY: Int,
         sizeZ: Int,

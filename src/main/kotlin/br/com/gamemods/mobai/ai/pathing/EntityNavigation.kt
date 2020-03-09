@@ -18,8 +18,8 @@ import cn.nukkit.math.Vector3f
 import cn.nukkit.math.Vector3i
 import kotlin.math.abs
 
-abstract class EntityNavigation<T>(ai: EntityAI<T>) where T: SmartEntity, T: BaseEntity {
-    protected val entity = ai.entity
+abstract class EntityNavigation<T>(val ai: EntityAI<T>) where T: SmartEntity, T: BaseEntity {
+    protected val entity get() = ai.entity
     protected var currentPath: Path? = null
     var speed = 0.0
     private val followRange = entity.attribute(Attribute.FOLLOW_RANGE)
@@ -33,13 +33,13 @@ abstract class EntityNavigation<T>(ai: EntityAI<T>) where T: SmartEntity, T: Bas
     protected var nodeReachProximity = 0.5F
     var shouldRecalculate = false; protected set
     protected var lastRecalculateTime = 0
-    abstract val nodeMaker: PathNodeMaker
+    abstract val nodeMaker: PathNodeMaker<T>
     var currentTarget: Vector3i? = null; private set
     private var targetDistance = 0
     var rangeMultiplier = 1F
 
     protected val navigationRange get() = (followRange.value * 16.0).intFloor()
-    protected abstract val pathNodeNavigator: PathNodeNavigator
+    protected abstract val pathNodeNavigator: PathNodeNavigator<T>
 
     protected abstract val isAtValidPosition: Boolean
 
@@ -92,7 +92,7 @@ abstract class EntityNavigation<T>(ai: EntityAI<T>) where T: SmartEntity, T: Bas
         val finalRange = (followRange + range).toInt()
         val chunkCache = ChunkCache(entity.level, pos.subtract(finalRange, finalRange, finalRange), pos.add(finalRange, finalRange, finalRange))
         val path: Path? = pathNodeNavigator.findPathToAny(chunkCache,
-            entity.ai, entity, positions, followRange, distance, rangeMultiplier)
+            ai, entity, positions, followRange, distance, rangeMultiplier)
         if (path?.target != null) {
             currentTarget = path.target
             targetDistance = distance

@@ -17,7 +17,7 @@ import cn.nukkit.math.Vector3i
 
 class WalkingNavigation<E>(ai: EntityAI<E>) : EntityNavigation<E>(ai) where E: SmartEntity, E: BaseEntity {
     var avoidSunlight = false
-    override val nodeMaker = LandPathNodeMaker().apply {
+    override val nodeMaker = LandPathNodeMaker<E>().apply {
         canEnterOpenDoors = true
     }
 

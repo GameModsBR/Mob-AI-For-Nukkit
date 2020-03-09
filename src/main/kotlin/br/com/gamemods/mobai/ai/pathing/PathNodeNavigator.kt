@@ -1,20 +1,21 @@
 package br.com.gamemods.mobai.ai.pathing
 
 import br.com.gamemods.mobai.entity.smart.EntityAI
+import br.com.gamemods.mobai.entity.smart.SmartEntity
 import br.com.gamemods.mobai.level.ChunkCache
 import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.math.Vector3i
 import java.util.*
 import kotlin.math.min
 
-class PathNodeNavigator(private val pathNodeMaker: PathNodeMaker, private val range: Int) {
+class PathNodeNavigator<E>(private val pathNodeMaker: PathNodeMaker<E>, private val range: Int) where E: SmartEntity, E: BaseEntity {
     private val successors = arrayOfNulls<PathNode>(32)
     private val minHeap = PathMinHeap()
 
     fun findPathToAny(
         chunkCache: ChunkCache,
-        ai: EntityAI<*>,
-        entity: BaseEntity,
+        ai: EntityAI<E>,
+        entity: E,
         positions: Set<Vector3i>,
         followRange: Float,
         distance: Int,

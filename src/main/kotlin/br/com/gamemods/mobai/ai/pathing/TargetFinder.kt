@@ -1,6 +1,5 @@
 package br.com.gamemods.mobai.ai.pathing
 
-import br.com.gamemods.mobai.entity.pathFindingPenalty
 import br.com.gamemods.mobai.entity.smart.EntityAI
 import br.com.gamemods.mobai.entity.smart.SmartEntity
 import br.com.gamemods.mobai.level.height

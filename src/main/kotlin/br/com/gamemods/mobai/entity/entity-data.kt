@@ -16,6 +16,16 @@ class IntData(private val data: EntityData): ReadWriteProperty<Entity, Int> {
     }
 }
 
+class ShortData(private val data: EntityData): ReadWriteProperty<Entity, Int> {
+    override fun getValue(thisRef: Entity, property: KProperty<*>): Int {
+        return thisRef.getShortData(data).toInt()
+    }
+
+    override fun setValue(thisRef: Entity, property: KProperty<*>, value: Int) {
+        thisRef.setShortData(data, value)
+    }
+}
+
 class BooleanData(private val data: EntityData): ReadWriteProperty<Entity, Boolean> {
     override fun getValue(thisRef: Entity, property: KProperty<*>): Boolean {
         return thisRef.getBooleanData(data)

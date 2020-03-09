@@ -1,18 +1,20 @@
 package br.com.gamemods.mobai.ai.pathing
 
 import br.com.gamemods.mobai.entity.smart.EntityAI
+import br.com.gamemods.mobai.entity.smart.SmartEntity
 import br.com.gamemods.mobai.level.ChunkCache
 import br.com.gamemods.mobai.math.intFloor
 import cn.nukkit.entity.Entity
+import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.level.ChunkManager
 import cn.nukkit.math.Vector3f
 import cn.nukkit.math.Vector3i
 
-abstract class PathNodeMaker {
+abstract class PathNodeMaker<E> where E: SmartEntity, E: BaseEntity {
     protected val pathNodeCache = mutableMapOf<Vector3i, PathNode>()
     protected var chunkCache: ChunkCache? = null
-    protected var entity: Entity? = null
-    protected var ai: EntityAI<*>? = null
+    protected var entity: E? = null
+    protected var ai: EntityAI<E>? = null
     protected var sizeX = 0
     protected var sizeY = 0
     protected var sizeZ = 0
@@ -22,7 +24,7 @@ abstract class PathNodeMaker {
 
     abstract val start: PathNode
 
-    open fun init(chunkCache: ChunkCache, ai: EntityAI<*>, entity: Entity) {
+    open fun init(chunkCache: ChunkCache, ai: EntityAI<E>, entity: E) {
         this.chunkCache = chunkCache
         this.ai = ai
         this.entity = entity
@@ -45,7 +47,7 @@ abstract class PathNodeMaker {
     abstract fun nodeType(
         levelView: ChunkManager,
         pos: Vector3i,
-        entity: Entity,
+        entity: E,
         sizeX: Int,
         sizeY: Int,
         sizeZ: Int,

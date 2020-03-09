@@ -3,7 +3,7 @@ package br.com.gamemods.mobai.ai.filter
 import br.com.gamemods.mobai.entity.canSee
 import br.com.gamemods.mobai.entity.canTarget
 import br.com.gamemods.mobai.entity.isTeammate
-import br.com.gamemods.mobai.entity.properties
+import br.com.gamemods.mobai.entity.propertiesForReading
 import br.com.gamemods.mobai.math.MobAiMath.square
 import cn.nukkit.entity.Entity
 import cn.nukkit.entity.impl.BaseEntity
@@ -29,7 +29,7 @@ data class TargetFilter(
         !ignoreEntityTargetRules && !baseEntity.canTarget(targetEntity) -> false
         !includeTeammates && baseEntity.isTeammate(targetEntity) -> false
         baseMaxDistance > 0.0 -> {
-            val factor = if (useDistanceScalingFactor) targetEntity.properties.attackDistanceScalingFactor else 1.0
+            val factor = if (useDistanceScalingFactor) targetEntity.propertiesForReading.attackDistanceScalingFactor else 1.0
             val maxDistance = baseMaxDistance * factor
             val squaredDistance = baseEntity.position.distanceSquared(targetEntity.position)
             squaredDistance <= square(maxDistance)

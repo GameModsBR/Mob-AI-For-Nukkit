@@ -21,3 +21,10 @@ inline fun <T: Tag> ListTag<T>.forEachIndexed(start: Int = 0, end: Int = size(),
         action(i, get(i))
     }
 }
+
+fun <T: Tag> ListTag<T>.getOrNull(index: Int) = if (index < 0 || index >= size()) null else get(index)
+
+fun <T: Tag> ListTag<T>.first(): T = get(0)
+fun <T: Tag> ListTag<T>.last(): T = get(size() - 1)
+fun <T: Tag> ListTag<T>.firstOrNull() = getOrNull(0)
+fun <T: Tag> ListTag<T>.lastOrNull() = getOrNull(size() - 1)

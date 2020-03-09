@@ -1,6 +1,7 @@
 package br.com.gamemods.mobai.entity
 
-import br.com.gamemods.mobai.ai.pathing.PathNodeType
+import br.com.gamemods.mobai.delegators.NoOp
+import br.com.gamemods.mobai.delegators.priority
 import br.com.gamemods.mobai.entity.smart.EntityProperties
 import br.com.gamemods.mobai.entity.smart.EntityPropertyStorage
 import br.com.gamemods.mobai.entity.smart.SmartEntity
@@ -23,22 +24,25 @@ import cn.nukkit.item.enchantment.Enchantment
 import cn.nukkit.level.BlockPosition
 import cn.nukkit.level.Position
 import cn.nukkit.math.Vector3f
+import cn.nukkit.nbt.tag.CompoundTag
 import cn.nukkit.player.Player
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.KProperty
 
-private val defaultProperties = EntityPropertyStorage(0.0)
+private val defaultProperties = EntityPropertyStorage(CompoundTag())
 
 val Entity.eyePosition get() = Position(x, y + eyeHeight, z, level)
 val Entity.isTouchingWater get() = (this as? BaseEntity)?.isInsideOfWater ?: false
 val Entity.isInLava get() = level.getBlockIdAt(position.asVector3i()).let { it == LAVA || it == FLOWING_LAVA }
-val Entity.properties get() = this as? EntityProperties ?: defaultProperties
-val Entity.propertiesOrNul get() = this as? EntityProperties
+val Entity.propertiesForReading get() = this as? EntityProperties ?: defaultProperties
 //TODO Not checking if is inside of water when the entity does not extends BaseEntity
 val Entity.isInsideOfWaterOrBubbles get() = (this as? BaseEntity)?.isInsideOfWaterOrBubbles ?: isInsideOfBubbles
 val Entity.isInsideOfBubbles get() = level.getBlockIdAt(position.asVector3i()) == BUBBLE_COLUMN
 val BaseEntity.isInsideOfWaterOrBubbles get() = isInsideOfWater || level.getBlockIdAt(asVector3i()) == BUBBLE_COLUMN
 val Entity.velocityAffectingPos get() = Vector3f(x, boundingBox.minY - 0.5000001, z)
-
 val Entity.velocityMultiplier get() = (this as? SmartEntity)?.velocityMultiplier ?: defaultVelocityMultiplier
+
 val Entity.defaultVelocityMultiplier: Float get() {
     val block = level[position]
 
@@ -49,12 +53,6 @@ val Entity.defaultVelocityMultiplier: Float get() {
     }
 }
 
-var Entity.movementSpeed: Float
-    get() = (this as? EntityLiving)?.movementSpeed ?: 0.1F
-    set(value) {
-        (this as? EntityLiving)?.movementSpeed = value
-    }
-
 var Entity.forwardMovementSpeed: Float
     get() = (this as? EntityProperties)?.forwardSpeed ?: 0F
     set(value) {
@@ -62,35 +60,15 @@ var Entity.forwardMovementSpeed: Float
         (this as? EntityLiving)?.movementSpeed = value
     }
 
-var Entity.flyingSpeed: Float
-    get() = properties.flyingSpeed
-    set(value) {
-        propertiesOrNul?.flyingSpeed = value
-    }
-
-var Entity.maxAir: Int
-    get() = getShortData(EntityData.MAX_AIR).toInt()
-    set(value) {
-        setShortData(EntityData.MAX_AIR, value)
-    }
-
-var Entity.air: Int
-    get() = getShortData(EntityData.AIR).toInt()
-    set(value) {
-        setShortData(EntityData.AIR, value)
-    }
-
-var Entity.isNameTagAlwaysVisible: Boolean
-    get() = (this as? BaseEntity)?.isNameTagAlwaysVisible ?: false
-    set(value) {
-        (this as? BaseEntity)?.isNameTagAlwaysVisible = true
-    }
-
-var Entity.isSilent: Boolean
-    get() = getFlag(EntityFlag.SILENT)
-    set(value) {
-        setFlag(EntityFlag.SILENT, value)
-    }
+var Entity.movementSpeed by priority(EntityLiving::getMovementSpeed, EntityLiving::setMovementSpeed, NoOp(0.0F))
+var Entity.maxAir by ShortData(EntityData.MAX_AIR)
+var Entity.remainingAir by ShortData(EntityData.AIR)
+var Entity.isNameTagAlwaysVisible by priority(BaseEntity::isNameTagAlwaysVisible, BaseEntity::setNameTagAlwaysVisible, BooleanData(EntityData.ALWAYS_SHOW_NAMETAG))
+var Entity.isSilent by Flag(EntityFlag.SILENT)
+var Entity.isImmobile by Flag(EntityFlag.IMMOBILE)
+var Entity.isUsingItem by priority(Player::isUsingItem, Player::setUsingItem, Flag(EntityFlag.ACTION))
+var Entity.isSneaking by priority(Human::isSneaking, Human::setSneaking, Flag(EntityFlag.SNEAKING))
+var Entity.isSprinting by priority(Human::isSprinting, Human::setSprinting, Flag(EntityFlag.SPRINTING))
 
 fun Entity.hasCollision(pos: Vector3f): Boolean {
     val box = boundingBox.offsetCopy(pos)
@@ -100,13 +78,6 @@ fun Entity.hasCollision(pos: Vector3f): Boolean {
 fun Entity.canTarget(entity: Entity) = (this as? SmartEntity)?.canTarget(entity) ?: (entity is EntityLiving)
 fun Entity.isTeammate(entity: Entity) = (this as? SmartEntity)?.isTeammate(entity) ?: false
 fun Entity.canSee(entity: Entity) = (this as? SmartEntity)?.canSee(entity) ?: false
-fun Entity.pathFindingPenalty(nodeType: PathNodeType)
-        = propertiesOrNul?.pathFindingPenalties?.get(nodeType) ?: nodeType.defaultPenalty
-
-var Entity.isImmobile: Boolean
-    get() = getFlag(EntityFlag.IMMOBILE)
-    set(value) = setFlag(EntityFlag.IMMOBILE, value)
-
 val Entity.isDeadOrImmobile get() = health <= 0 || isImmobile
 
 fun Entity.getEquipmentLevel(enchantmentId: Int): Int {
@@ -136,7 +107,7 @@ tailrec fun Entity.pathFindingFavor(pos: BlockPosition): Float {
 }
 
 inline fun Entity.attribute(id: Int, fallback: (Entity, Int) -> Attribute = { _, i -> Attribute.getAttribute(i) })
-        = propertiesOrNul?.attributes?.get(id) ?: fallback(this, id)
+        = (this as? EntityProperties)?.attributes?.get(id) ?: fallback(this, id)
 
 tailrec fun Entity.isRiding(entity: Entity): Boolean {
     val vehicle = vehicle ?: return false
@@ -150,7 +121,7 @@ fun Entity.getMovementSpeed(slipperiness: Float): Float {
     return if (isOnGround) {
         movementSpeed * ((0.6F * 0.6F * 0.6F) / (slipperiness * slipperiness * slipperiness))
     } else {
-        flyingSpeed
+        propertiesForReading.flyingSpeed
     }
 }
 
@@ -177,6 +148,7 @@ val Entity.offHandItem: Item get() = when (this) {
     else -> Item.get(AIR)
 }
 
+
 val Entity.handItems get() = arrayOf(mainHandItem, offHandItem)
 
 val Entity.lootingLevel get() = mainHandItem.getEnchantment(Enchantment.ID_LOOTING)?.level ?: 0
@@ -200,3 +172,12 @@ inline fun SmartEntity.ifNotOnInit(action: () -> Unit) {
     action()
 }
 
+class Property<V>(private val property: KMutableProperty<V>): ReadWriteProperty<Entity, V> {
+    override fun getValue(thisRef: Entity, property: KProperty<*>): V {
+        return this.property.getter.call(thisRef as? EntityProperties ?: defaultProperties)
+    }
+
+    override fun setValue(thisRef: Entity, property: KProperty<*>, value: V) {
+        this.property.setter.call(thisRef as? EntityProperties ?: return, value)
+    }
+}

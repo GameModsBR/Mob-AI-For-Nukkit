@@ -22,7 +22,9 @@ import cn.nukkit.network.protocol.LevelSoundEventPacket
 import cn.nukkit.player.Player
 
 class SmartPig(type: EntityType<Pig>, chunk: Chunk, tag: CompoundTag)
-    : EntityPig(type, chunk, tag), SmartAnimal, EntityProperties by EntityPropertyStorage(tag) {
+    : EntityPig(type, chunk, tag), SmartAnimal, EntityProperties by EntityPropertyStorage(tag,
+    expDrop = 1..3
+) {
 
     override val ai = EntityAI(this).apply {
         goalSelector.add(0, SwimGoal(this))
@@ -33,8 +35,6 @@ class SmartPig(type: EntityType<Pig>, chunk: Chunk, tag: CompoundTag)
         goalSelector.add(7, LookAtEntityGoal(this, Player::class, 6.0))
         goalSelector.add(8, LookAroundGoal(this))
     }
-
-    override var expDrop = 1..3
 
     var isSaddled by Flag(EntityFlag.SADDLED)
 
@@ -47,10 +47,7 @@ class SmartPig(type: EntityType<Pig>, chunk: Chunk, tag: CompoundTag)
         simpleStepSound = SimpleSound(Sound.MOB_PIG_STEP)
     }
 
-    override fun isBreedingItem(item: Item) = when (item.id) {
-        CARROT, POTATO, BEETROOT -> true
-        else -> false
-    }
+    override fun isBreedingItem(item: Item) = super<EntityPig>.isBreedingItem(item)
 
     override fun getDrops(): Array<Item> {
         val random = random

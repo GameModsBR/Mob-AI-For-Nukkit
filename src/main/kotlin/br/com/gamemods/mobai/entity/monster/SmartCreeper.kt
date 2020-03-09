@@ -41,7 +41,9 @@ import cn.nukkit.potion.Effect
 import cn.nukkit.registry.EntityRegistry
 
 class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
-        : EntityCreeper(type, chunk, nbt), SmartMonster, EntityProperties by EntityPropertyStorage(nbt) {
+        : EntityCreeper(type, chunk, nbt), SmartMonster, EntityProperties by EntityPropertyStorage(nbt,
+    expDrop = 5..5
+) {
     override val ai = EntityAI(this).apply {
         goalSelector.add(1, SwimGoal(this))
         goalSelector.add(2, CreeperIgniteGoal(this))
@@ -54,8 +56,6 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
         targetSelector.add(1, FollowTargetGoal(this, Player::class, true))
         targetSelector.add(2, RevengeGoal(this))
     }
-
-    override var expDrop = 5..5
 
     var fuseSpeed = -1
     var explosionRadius = 3
