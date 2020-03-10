@@ -36,7 +36,7 @@ class EntityAI<E> (
     val hasPositionTarget get() = positionTargetRange != -1F
 
     fun tickAI(tickDiff: Int): Boolean {
-        entity.deSpawnCounter++
+        entity.despawnCounter++
         entity.visibleEntityIdsCache.clear()
         entity.invisibleEntityIdsCache.clear()
         val shouldUpdate = targetSelector.tick() or

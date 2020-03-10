@@ -1,4 +1,4 @@
-package br.com.gamemods.mobai.entity.smart
+package br.com.gamemods.mobai.level
 
 import cn.nukkit.level.Sound
 

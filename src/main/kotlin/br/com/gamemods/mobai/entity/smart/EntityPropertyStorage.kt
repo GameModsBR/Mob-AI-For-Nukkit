@@ -2,6 +2,7 @@ package br.com.gamemods.mobai.entity.smart
 
 import br.com.gamemods.mobai.ai.pathing.PathNodeType
 import br.com.gamemods.mobai.entity.definition.EntityDefinitionCollection
+import br.com.gamemods.mobai.level.SimpleSound
 import br.com.gamemods.mobai.nbt.firstOrNull
 import cn.nukkit.entity.Attribute
 import cn.nukkit.entity.Entity
@@ -20,7 +21,6 @@ class EntityPropertyStorage (
     override var sidewaysSpeed: Float = 0F,
     override var upwardSpeed: Float = 0F,
     override var forwardSpeed: Float = 0F,
-    override var deSpawnCounter: Int = 0,
     override val lookPitchSpeed: Double = 40.0,
     override val lookMovingSpeed: Double = 75.0,
     override val lookYawSpeed: Double = 10.0,
@@ -46,5 +46,11 @@ class EntityPropertyStorage (
     override var nextStepSoundDistance: Float = 0F,
     override var simpleStepSound: SimpleSound? = null,
     override val healthAttribute: Attribute = Attribute.getAttribute(Attribute.MAX_HEALTH),
-    override var expDrop: IntRange = IntRange.EMPTY
+    override var expDrop: IntRange = IntRange.EMPTY,
+    override var loveTicks: Int = 0,
+    override var lovingPlayerId: Long? = null,
+    override var isPersistent: Boolean = false,
+    override var breedingAge: Int = 0,
+    override var forcedBreedingAge: Int = 0,
+    override var despawnCounter: Int = 0
 ) : EntityProperties

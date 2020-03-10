@@ -3,10 +3,8 @@ package br.com.gamemods.mobai.entity
 import br.com.gamemods.mobai.entity.smart.EntityProperties
 import br.com.gamemods.mobai.entity.smart.EntityPropertyStorage
 import br.com.gamemods.mobai.entity.smart.SmartEntity
-import br.com.gamemods.mobai.level.get
-import br.com.gamemods.mobai.level.getBlockIdAt
-import br.com.gamemods.mobai.level.hasCollision
-import br.com.gamemods.mobai.level.velocityMultiplier
+import br.com.gamemods.mobai.level.*
+import br.com.gamemods.mobai.math.intFloor
 import br.com.gamemods.mobai.math.offsetCopy
 import cn.nukkit.block.BlockIds.*
 import cn.nukkit.block.BlockWater
@@ -21,6 +19,7 @@ import cn.nukkit.item.enchantment.Enchantment
 import cn.nukkit.level.BlockPosition
 import cn.nukkit.level.Position
 import cn.nukkit.math.Vector3f
+import cn.nukkit.math.Vector3i
 import cn.nukkit.nbt.tag.CompoundTag
 import cn.nukkit.player.Player
 import kotlin.properties.ReadWriteProperty
@@ -39,6 +38,7 @@ val Entity.isInsideOfBubbles get() = level.getBlockIdAt(position.asVector3i()) =
 val BaseEntity.isInsideOfWaterOrBubbles get() = isInsideOfWater || level.getBlockIdAt(asVector3i()) == BUBBLE_COLUMN
 val Entity.velocityAffectingPos get() = Vector3f(x, boundingBox.minY - 0.5000001, z)
 val Entity.velocityMultiplier get() = (this as? SmartEntity)?.velocityMultiplier ?: defaultVelocityMultiplier
+val Entity.brightnessAtEyes get() = level.getBrightness(Vector3i(x.intFloor(), (y + eyeHeight).intFloor(), z.intFloor()))
 
 val Entity.defaultVelocityMultiplier: Float get() {
     val block = level[position]

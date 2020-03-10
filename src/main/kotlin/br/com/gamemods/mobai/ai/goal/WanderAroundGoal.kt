@@ -25,9 +25,9 @@ open class WanderAroundGoal<E>(
             }
 
             if (!ignoreChanceOnce) {
-                /*if (deSpawnCounter >= 100) {
+                if (despawnCounter >= 100) {
                     return false
-                }*/
+                }
 
                 if (random.nextInt(chance) != 0) {
                     return false

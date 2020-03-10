@@ -16,6 +16,7 @@ import cn.nukkit.level.ChunkManager
 import cn.nukkit.level.Level
 import cn.nukkit.level.chunk.Chunk
 import cn.nukkit.level.chunk.IChunk
+import cn.nukkit.level.gamerule.GameRules
 import cn.nukkit.level.generator.noise.nukkit.f.NoiseF
 import cn.nukkit.math.AxisAlignedBB
 import cn.nukkit.math.Vector3f
@@ -26,6 +27,7 @@ import kotlin.reflect.full.cast
 import kotlin.reflect.full.safeCast
 
 val Level.height: Int get() = if (dimension == Level.DIMENSION_NETHER) 127 else 255
+val Level.doMobLoot: Boolean get() = gameRules[GameRules.DO_MOB_LOOT]
 
 fun Level.findClosestPlayer(filter: TargetFilter, cause: Entity): Player? {
     return findClosestPlayer(filter, cause, cause.position)
@@ -49,6 +51,27 @@ fun Level.findClosestEntity(
             this
         }
     }, targetFilter, cause, position)
+}
+
+fun Level.findPlayers(near: Vector3f, maxDistance: Double = -1.0, ignoreCreative: Boolean = false): Sequence<Pair<Player, Double>> {
+    return players.values.asSequence()
+        .run {
+            if (ignoreCreative) {
+                filterNot { it.isSpectator || it.isCreative }
+            } else {
+                filterNot { it.isSpectator }
+            }
+        }
+        .map { it to it.distanceSquared(near) }
+        .run {
+            if (maxDistance >= 0) {
+                filter { (_, distance) ->
+                    distance <= maxDistance
+                }
+            } else {
+                this
+            }
+        }
 }
 
 inline fun <reified E: Entity> Level.findEntities(
@@ -78,10 +101,13 @@ fun <E: Entity> Level.findEntities(
         .toList()
 }
 
+fun <T: Entity> Sequence<Pair<T, Double>>.closest() = maxBy { it.second }
+
+fun <T: Entity> Collection<T>.distance(pos: Vector3f) = asSequence()
+    .map { it to (it as? Vector3f ?: it.position).distanceSquared(pos) }
+
 fun <T: Entity> Collection<T>.closestTo(pos: Vector3f): Pair<T, Double>? {
-    return asSequence()
-        .map { it to (it as? Vector3f ?: it.position).distanceSquared(pos) }
-        .maxBy { it.second }
+    return distance(pos).closest()
 }
 
 private fun <T : Entity> findClosestEntity(

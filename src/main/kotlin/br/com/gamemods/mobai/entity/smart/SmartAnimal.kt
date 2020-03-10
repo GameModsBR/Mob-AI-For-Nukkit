@@ -5,6 +5,11 @@ import cn.nukkit.block.BlockIds.GRASS
 import cn.nukkit.level.BlockPosition
 
 interface SmartAnimal : SmartEntity {
+    override fun initData() {
+        super.initData()
+        isPersistent = true
+    }
+
     override fun pathFindingFavor(pos: BlockPosition): Float {
         return if (pos.down().block.id == GRASS) {
             10F

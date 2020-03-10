@@ -5,7 +5,12 @@ import br.com.gamemods.mobai.entity.Flag
 import br.com.gamemods.mobai.entity.attribute
 import br.com.gamemods.mobai.entity.baseValue
 import br.com.gamemods.mobai.entity.lootingLevel
-import br.com.gamemods.mobai.entity.smart.*
+import br.com.gamemods.mobai.entity.smart.EntityAI
+import br.com.gamemods.mobai.entity.smart.EntityProperties
+import br.com.gamemods.mobai.entity.smart.EntityPropertyStorage
+import br.com.gamemods.mobai.entity.smart.SmartAnimal
+import br.com.gamemods.mobai.entity.smart.logic.Breedable
+import br.com.gamemods.mobai.level.SimpleSound
 import cn.nukkit.entity.Attribute.MOVEMENT_SPEED
 import cn.nukkit.entity.EntityType
 import cn.nukkit.entity.data.EntityFlag
@@ -22,13 +27,15 @@ import cn.nukkit.network.protocol.LevelSoundEventPacket
 import cn.nukkit.player.Player
 
 class SmartPig(type: EntityType<Pig>, chunk: Chunk, tag: CompoundTag)
-    : EntityPig(type, chunk, tag), SmartAnimal, EntityProperties by EntityPropertyStorage(tag,
-    expDrop = 1..3
-) {
+    : EntityPig(type, chunk, tag), SmartAnimal, Breedable,
+    EntityProperties by EntityPropertyStorage(tag,
+        expDrop = 1..3
+    ) {
 
     override val ai = EntityAI(this).apply {
         goalSelector.add(0, SwimGoal(this))
         goalSelector.add(1, EscapeDangerGoal(this, 1.25))
+        goalSelector.add(3, AnimalMateGoal(this, 1.0))
         goalSelector.add(4, TemptGoal(this, 1.2, CARROT_ON_A_STICK))
         goalSelector.add(4, TemptGoal(this, 1.2, ::isBreedingItem))
         goalSelector.add(5, FollowParentGoal(this, 1.1))
@@ -64,7 +71,7 @@ class SmartPig(type: EntityType<Pig>, chunk: Chunk, tag: CompoundTag)
         return drops.toTypedArray()
     }
 
-    override fun onInteract(player: Player?, item: Item, clickedPos: Vector3f?): Boolean {
+    override fun onInteract(player: Player, item: Item, clickedPos: Vector3f): Boolean {
         if (item.id == SADDLE) {
             if (!isSaddled) {
                 isSaddled = true
@@ -74,7 +81,8 @@ class SmartPig(type: EntityType<Pig>, chunk: Chunk, tag: CompoundTag)
             }
             return false
         }
-        return super.onInteract(player, item, clickedPos)
+        return super<Breedable>.onInteract(player, item, clickedPos)
+                || super<EntityPig>.onInteract(player, item, clickedPos)
     }
 
     override fun updateMovement() = super<SmartAnimal>.updateMovement()

@@ -2,6 +2,7 @@ package br.com.gamemods.mobai.entity.smart
 
 import br.com.gamemods.mobai.ai.pathing.PathNodeType
 import br.com.gamemods.mobai.entity.definition.EntityDefinitionCollection
+import br.com.gamemods.mobai.level.SimpleSound
 import cn.nukkit.entity.Attribute
 import cn.nukkit.entity.Entity
 import cn.nukkit.math.Vector3f
@@ -16,7 +17,6 @@ interface EntityProperties {
     var sidewaysSpeed: Float
     var upwardSpeed: Float
     var forwardSpeed: Float
-    var deSpawnCounter: Int
     val lookPitchSpeed: Double
     val lookMovingSpeed: Double
     val lookYawSpeed: Double
@@ -43,7 +43,15 @@ interface EntityProperties {
     var simpleStepSound: SimpleSound?
     val healthAttribute: Attribute
     var expDrop: IntRange
+    var loveTicks: Int
+    var lovingPlayerId: Long?
+    var isPersistent: Boolean
+    var breedingAge: Int
+    var forcedBreedingAge: Int
+    var despawnCounter: Int
     val random: Random get() = ThreadLocalRandom.current()
+
+    val isInLove get() = loveTicks > 0
 
     fun addAttribute(attribute: Attribute) {
         if (attribute.id == Attribute.MAX_HEALTH) {

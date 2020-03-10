@@ -1,22 +1,19 @@
-package br.com.gamemods.mobai.entity.smart
+package br.com.gamemods.mobai.entity.smart.logic
 
 import br.com.gamemods.mobai.entity.*
+import br.com.gamemods.mobai.entity.smart.MoveCause
 import br.com.gamemods.mobai.level.FutureEffectIds
 import br.com.gamemods.mobai.math.ZERO_3F
 import br.com.gamemods.mobai.math.clamp
 import cn.nukkit.block.BlockLadder
 import cn.nukkit.block.BlockTrapdoor
 import cn.nukkit.entity.data.EntityFlag
-import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.item.enchantment.Enchantment
 import cn.nukkit.math.MathHelper
 import cn.nukkit.math.Vector3f
 import cn.nukkit.potion.Effect
 
-interface Traveller {
-    private inline val base get() = this as BaseEntity
-    private inline val smart get() = this as SmartEntity
-
+interface TravellerLogic: SplitLogic {
     fun canEnterTrapdoor(block: BlockTrapdoor): Boolean {
         if (!block.isOpen) {
             return false
@@ -30,7 +27,7 @@ interface Traveller {
         return under.blockFace == block.blockFace
     }
 
-    fun travel(movementInput: Vector3f) { base.apply { smart.apply {
+    fun travel(movementInput: Vector3f) { base { smart {
         //println("TR: $movementInput")
         var d: Double
         var g: Float
@@ -142,7 +139,7 @@ interface Traveller {
         this.limbAngle += this.limbDistance*/
     }}}
 
-    fun updateVelocity(speed: Float, movementInput: Vector3f) { base.apply {
+    fun updateVelocity(speed: Float, movementInput: Vector3f) { base {
         val vec3d: Vector3f = movementInputToVelocity(movementInput, speed, yaw.toFloat())
         motion = motion.add(vec3d)
     }}
@@ -166,7 +163,7 @@ interface Traveller {
 
     fun move(cause: MoveCause, movement: Vector3f)
 
-    fun applyClimbingSpeed(motion: Vector3f): Vector3f { base.apply { smart.apply {
+    fun applyClimbingSpeed(motion: Vector3f): Vector3f { base { smart {
         if (!isClimbing) {
             return motion
         }
