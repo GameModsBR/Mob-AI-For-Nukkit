@@ -50,7 +50,7 @@ interface Breedable: SplitLogic {
         baby.spawnToAll()
     }
 
-    fun isBreedingItem(item: Item): Boolean
+    fun isBreedingItem(item: Item): Boolean = false
 
     fun onInteract(player: Player, item: Item, clickedPos: Vector3f): Boolean {
         if (!isBreedingItem(item)) {

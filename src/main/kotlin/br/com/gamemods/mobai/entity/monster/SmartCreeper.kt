@@ -1,15 +1,17 @@
 package br.com.gamemods.mobai.entity.monster
 
 import br.com.gamemods.mobai.ai.goal.*
-import br.com.gamemods.mobai.entity.*
+import br.com.gamemods.mobai.entity.Flag
+import br.com.gamemods.mobai.entity.IntData
 import br.com.gamemods.mobai.entity.definition.EntityDefinitionIds.CHARGED_CREEPER
 import br.com.gamemods.mobai.entity.definition.EntityDefinitionIds.FORCED_EXPLODING
+import br.com.gamemods.mobai.entity.ifNotOnInit
+import br.com.gamemods.mobai.entity.lootingLevel
 import br.com.gamemods.mobai.entity.smart.EntityAI
 import br.com.gamemods.mobai.entity.smart.EntityProperties
 import br.com.gamemods.mobai.entity.smart.EntityPropertyStorage
 import br.com.gamemods.mobai.entity.smart.SmartMonster
 import br.com.gamemods.mobai.math.clamp
-import cn.nukkit.entity.Attribute.MOVEMENT_SPEED
 import cn.nukkit.entity.Entity
 import cn.nukkit.entity.EntityType
 import cn.nukkit.entity.EntityTypes
@@ -94,11 +96,6 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
         } else {
             definitions[CHARGED_CREEPER] = isPowered
         }
-    }
-
-    override fun initAttributes() {
-        super.initAttributes()
-        attribute(MOVEMENT_SPEED).baseValue = 0.25F
     }
 
     override val safeFallDistance: Int

@@ -49,6 +49,7 @@ interface EntityProperties {
     var breedingAge: Int
     var forcedBreedingAge: Int
     var despawnCounter: Int
+    val limitPerChunk get() = 4
     val random: Random get() = ThreadLocalRandom.current()
 
     val isInLove get() = loveTicks > 0

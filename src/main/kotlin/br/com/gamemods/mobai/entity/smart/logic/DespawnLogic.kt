@@ -1,6 +1,7 @@
 package br.com.gamemods.mobai.entity.smart.logic
 
 import br.com.gamemods.mobai.level.closest
+import br.com.gamemods.mobai.level.difficulty
 import br.com.gamemods.mobai.level.findPlayers
 import br.com.gamemods.mobai.math.square
 
@@ -8,7 +9,7 @@ interface DespawnLogic: SplitLogic {
     val isDisallowedInPeaceful get() = false
 
     fun checkDespawn() { base {
-        if (level.server.difficulty == 0 && isDisallowedInPeaceful) {
+        if (level.difficulty == 0 && isDisallowedInPeaceful) {
             close()
             return
         }

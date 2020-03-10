@@ -3,6 +3,7 @@ package br.com.gamemods.mobai.entity
 import br.com.gamemods.mobai.entity.smart.EntityProperties
 import br.com.gamemods.mobai.entity.smart.EntityPropertyStorage
 import br.com.gamemods.mobai.entity.smart.SmartEntity
+import br.com.gamemods.mobai.entity.smart.logic.SplitLogic
 import br.com.gamemods.mobai.level.*
 import br.com.gamemods.mobai.math.intFloor
 import br.com.gamemods.mobai.math.offsetCopy
@@ -92,6 +93,9 @@ tailrec fun Entity.pathFindingFavor(pos: BlockPosition): Float {
         (this as? SmartEntity)?.pathFindingFavor(pos) ?: 0F
     }
 }
+
+inline fun SplitLogic.attribute(id: Int, fallback: (SplitLogic, Int) -> Attribute = { _, i -> Attribute.getAttribute(i) })
+        = (this as EntityProperties).attributes[id] ?: fallback(this, id)
 
 inline fun Entity.attribute(id: Int, fallback: (Entity, Int) -> Attribute = { _, i -> Attribute.getAttribute(i) })
         = (this as? EntityProperties)?.attributes?.get(id) ?: fallback(this, id)

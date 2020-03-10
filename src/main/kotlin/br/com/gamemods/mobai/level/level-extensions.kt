@@ -22,12 +22,14 @@ import cn.nukkit.math.AxisAlignedBB
 import cn.nukkit.math.Vector3f
 import cn.nukkit.math.Vector3i
 import cn.nukkit.player.Player
+import kotlin.math.max
 import kotlin.reflect.KClass
 import kotlin.reflect.full.cast
 import kotlin.reflect.full.safeCast
 
 val Level.height: Int get() = if (dimension == Level.DIMENSION_NETHER) 127 else 255
 val Level.doMobLoot: Boolean get() = gameRules[GameRules.DO_MOB_LOOT]
+val Level.difficulty get() = server.difficulty
 
 fun Level.findClosestPlayer(filter: TargetFilter, cause: Entity): Player? {
     return findClosestPlayer(filter, cause, cause.position)
@@ -182,6 +184,14 @@ fun Level.getFullLightFixed(pos: Vector3i): Int {
         level = chunk.getBlockLight(pos.x and 0x0f, pos.y and 0xff, pos.z and 0x0f).toInt().coerceAtLeast(level)
     }
     return level
+}
+
+fun Level.getLight(pos: Vector3i, ambientDarkness: Int = skyLightSubtracted.intCeil()): Int {
+    val chunk = getChunk(pos.chunkX, pos.chunkZ) ?: return 0
+    val chunkIndex = pos.chunkIndex()
+    val skyLight = chunk.getSkyLight(chunkIndex.x, chunkIndex.y, chunkIndex.z) - ambientDarkness
+    val blockLight = chunk.getBlockLight(chunkIndex.x, chunkIndex.y, chunkIndex.z).toInt()
+    return max(blockLight, skyLight)
 }
 
 fun Level.hasCollision(entity: Entity?, bb: AxisAlignedBB, entities: Boolean, fluids: Boolean): Boolean {

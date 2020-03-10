@@ -3,6 +3,7 @@ package br.com.gamemods.mobai.entity.smart.logic
 import br.com.gamemods.mobai.ExtraAttributeIds
 import br.com.gamemods.mobai.entity.addFlags
 import br.com.gamemods.mobai.entity.attribute
+import br.com.gamemods.mobai.entity.baseValue
 import br.com.gamemods.mobai.entity.definition.EntityDefinition
 import br.com.gamemods.mobai.entity.movementSpeed
 import cn.nukkit.entity.Attribute
@@ -35,5 +36,6 @@ interface InitLogic: PersistenceLogic {
         )
         addAttribute(healthAttribute)
         attribute(Attribute.ABSORPTION).maxValue = 16F
+        attribute(Attribute.MOVEMENT_SPEED).baseValue = 0.25F
     }}
 }

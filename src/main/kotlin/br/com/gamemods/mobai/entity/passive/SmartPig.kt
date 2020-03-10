@@ -2,8 +2,6 @@ package br.com.gamemods.mobai.entity.passive
 
 import br.com.gamemods.mobai.ai.goal.*
 import br.com.gamemods.mobai.entity.Flag
-import br.com.gamemods.mobai.entity.attribute
-import br.com.gamemods.mobai.entity.baseValue
 import br.com.gamemods.mobai.entity.lootingLevel
 import br.com.gamemods.mobai.entity.smart.EntityAI
 import br.com.gamemods.mobai.entity.smart.EntityProperties
@@ -11,10 +9,12 @@ import br.com.gamemods.mobai.entity.smart.EntityPropertyStorage
 import br.com.gamemods.mobai.entity.smart.SmartAnimal
 import br.com.gamemods.mobai.entity.smart.logic.Breedable
 import br.com.gamemods.mobai.level.SimpleSound
-import cn.nukkit.entity.Attribute.MOVEMENT_SPEED
+import cn.nukkit.entity.Entity
 import cn.nukkit.entity.EntityType
+import cn.nukkit.entity.EntityTypes
 import cn.nukkit.entity.data.EntityFlag
 import cn.nukkit.entity.impl.passive.EntityPig
+import cn.nukkit.entity.misc.LightningBolt
 import cn.nukkit.entity.passive.Pig
 import cn.nukkit.event.entity.EntityDamageEvent
 import cn.nukkit.item.Item
@@ -25,11 +25,13 @@ import cn.nukkit.math.Vector3f
 import cn.nukkit.nbt.tag.CompoundTag
 import cn.nukkit.network.protocol.LevelSoundEventPacket
 import cn.nukkit.player.Player
+import cn.nukkit.registry.EntityRegistry
 
 class SmartPig(type: EntityType<Pig>, chunk: Chunk, tag: CompoundTag)
     : EntityPig(type, chunk, tag), SmartAnimal, Breedable,
     EntityProperties by EntityPropertyStorage(tag,
-        expDrop = 1..3
+        expDrop = 1..3,
+        simpleStepSound = SimpleSound(Sound.MOB_PIG_STEP)
     ) {
 
     override val ai = EntityAI(this).apply {
@@ -48,11 +50,21 @@ class SmartPig(type: EntityType<Pig>, chunk: Chunk, tag: CompoundTag)
 
     init { init() }
 
-    override fun initAttributes() {
-        super.initAttributes()
-        attribute(MOVEMENT_SPEED).baseValue = 0.25F
-
-        simpleStepSound = SimpleSound(Sound.MOB_PIG_STEP)
+    override fun onStruckByLightning(lightningBolt: LightningBolt?) {
+        val zombie = EntityRegistry.get().newEntity(EntityTypes.ZOMBIE_PIGMAN, chunk,
+            Entity.getDefaultNBT(position, motion, yaw.toFloat(), pitch.toFloat())
+        ) ?: return super.onStruckByLightning(lightningBolt)
+        if (isNameTagVisible) {
+            zombie.setFlag(EntityFlag.CAN_SHOW_NAMETAG, true)
+        }
+        if (isNameTagAlwaysVisible) {
+            zombie.setFlag(EntityFlag.ALWAYS_SHOW_NAMETAG, true)
+        }
+        if (hasCustomName()) {
+            zombie.nameTag = nameTag
+        }
+        close()
+        zombie.spawnToAll()
     }
 
     override fun isBreedingItem(item: Item) = super<EntityPig>.isBreedingItem(item)
