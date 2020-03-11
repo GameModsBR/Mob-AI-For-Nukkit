@@ -8,7 +8,7 @@ class PathMinHeap {
         check(node.heapIndex == -1)
 
         if (count == pathNodes.size) {
-            this.pathNodes = pathNodes.copyOfRange(0, count * 2)
+            this.pathNodes = pathNodes.copyOf(count * 2)
         }
 
         pathNodes[count] = node
