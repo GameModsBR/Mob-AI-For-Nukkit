@@ -1,5 +1,6 @@
 package br.com.gamemods.mobai.entity.smart.logic
 
+import br.com.gamemods.mobai.delegators.intField
 import br.com.gamemods.mobai.delegators.transforming
 import br.com.gamemods.mobai.entity.smart.EntityAI
 import br.com.gamemods.mobai.entity.smart.EntityProperties
@@ -51,12 +52,7 @@ inline val SplitLogic.smart get() = this as SmartEntity
 inline val SplitLogic.level: Level get() = base.level
 inline val SplitLogic.type: EntityType<*> get() = entity.type
 
-private val baseEntityHealthField = BaseEntity::class.java.getDeclaredField("maxHealth").also { it.isAccessible = true }
-private var BaseEntity.maxHealthField: Int
-    get() = baseEntityHealthField.getInt(this)
-    set(value) {
-        baseEntityHealthField.setInt(this, value)
-    }
+private var BaseEntity.maxHealthField by intField<BaseEntity>("maxHealth")
 
 var SplitLogic.maxHealth by transforming(20F) { thisRef: SplitLogic, _: KProperty<*>, _: Float, newValue: Float ->
     thisRef.smart {
