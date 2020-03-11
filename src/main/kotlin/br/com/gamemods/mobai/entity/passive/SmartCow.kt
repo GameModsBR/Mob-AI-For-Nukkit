@@ -30,6 +30,7 @@ class SmartCow(type: EntityType<Cow>, chunk: Chunk, tag: CompoundTag)
                 || super<EntityCow>.onInteract(player, item, clickedPos)
     }
 
+    override fun setMaxHealth(maxHealth: Int) = super<CowBase>.setMaxHealth(maxHealth)
     override fun updateMovement() = super<CowBase>.updateMovement()
     override fun onUpdate(currentTick: Int) = super<CowBase>.onUpdate(currentTick)
     override fun attack(source: EntityDamageEvent) = super<EntityCow>.attack(source) && super<CowBase>.attack(source)
@@ -42,11 +43,5 @@ class SmartCow(type: EntityType<Cow>, chunk: Chunk, tag: CompoundTag)
     override fun kill() {
         super<EntityCow>.kill()
         super<CowBase>.kill()
-    }
-
-    override var maxHealth = 20F
-    override fun setMaxHealth(maxHealth: Int) {
-        super.setMaxHealth(maxHealth)
-        this.maxHealth = maxHealth.toFloat()
     }
 }

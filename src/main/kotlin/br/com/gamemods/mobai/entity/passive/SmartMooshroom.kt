@@ -8,10 +8,10 @@ import br.com.gamemods.mobai.entity.smart.EntityAI
 import br.com.gamemods.mobai.entity.smart.EntityProperties
 import br.com.gamemods.mobai.entity.smart.EntityPropertyStorage
 import br.com.gamemods.mobai.entity.smart.logic.Breedable
-import br.com.gamemods.mobai.level.get
+import br.com.gamemods.mobai.level.getBlockIdAt
 import br.com.gamemods.mobai.level.getBrightness
 import br.com.gamemods.mobai.level.getLight
-import cn.nukkit.block.BlockIds
+import cn.nukkit.block.BlockIds.MYCELIUM
 import cn.nukkit.entity.Entity
 import cn.nukkit.entity.EntityType
 import cn.nukkit.entity.impl.passive.EntityMooshroom
@@ -21,6 +21,7 @@ import cn.nukkit.event.entity.EntityDamageByEntityEvent
 import cn.nukkit.event.entity.EntityDamageEvent
 import cn.nukkit.item.Item
 import cn.nukkit.level.BlockPosition
+import cn.nukkit.level.ChunkManager
 import cn.nukkit.level.Level
 import cn.nukkit.level.chunk.Chunk
 import cn.nukkit.math.Vector3f
@@ -41,7 +42,7 @@ class SmartMooshroom(type: EntityType<Mooshroom>, chunk: Chunk, tag: CompoundTag
     init { init() }
 
     override fun pathFindingFavor(pos: BlockPosition): Float {
-        return if (pos.down().block.id == BlockIds.MYCELIUM) {
+        return if (pos.down().block.id == MYCELIUM) {
             10F
         } else {
             pos.level.getBrightness(pos) - 0.5F
@@ -59,12 +60,12 @@ class SmartMooshroom(type: EntityType<Mooshroom>, chunk: Chunk, tag: CompoundTag
     override fun createChild(partner: Breedable): Entity? {
         return super.createChild(partner)?.also {
             if (partner is SmartMooshroom && it is SmartMooshroom) {
-                it.mooshromType = chooseBabyType(it, partner)
+                it.mooshromType = chooseBabyType(partner)
             }
         }
     }
 
-    fun chooseBabyType(baby: SmartMooshroom, partner: SmartMooshroom): MooshroomType {
+    fun chooseBabyType(partner: SmartMooshroom): MooshroomType {
         val thisType = mooshromType
         val otherType = partner.mooshromType
         return if (thisType == otherType && random.nextInt(1024) == 0) {
@@ -83,6 +84,7 @@ class SmartMooshroom(type: EntityType<Mooshroom>, chunk: Chunk, tag: CompoundTag
                 || super<EntityMooshroom>.onInteract(player, item, clickedPos)
     }
 
+    override fun setMaxHealth(maxHealth: Int) = super<CowBase>.setMaxHealth(maxHealth)
     override fun updateMovement() = super<CowBase>.updateMovement()
     override fun onUpdate(currentTick: Int) = super<CowBase>.onUpdate(currentTick)
     override fun attack(source: EntityDamageEvent) = super<EntityMooshroom>.attack(source) && super<CowBase>.attack(source)
@@ -97,20 +99,21 @@ class SmartMooshroom(type: EntityType<Mooshroom>, chunk: Chunk, tag: CompoundTag
         super<CowBase>.kill()
     }
 
-    override var maxHealth = 20F
-    override fun setMaxHealth(maxHealth: Int) {
-        super.setMaxHealth(maxHealth)
-        this.maxHealth = maxHealth.toFloat()
-    }
-
     enum class MooshroomType {
         RED,
         BROWN
     }
 
     companion object: Spawnable() {
-        override fun canSpawn(type: EntityType<*>, level: Level, spawnType: SpawnType, spawnPos: Vector3i, random: Random): Boolean {
-            return level[spawnPos.down()].id == BlockIds.MYCELIUM && level.getLight(spawnPos, 0) > 8
+        override fun canSpawn(
+            type: EntityType<*>,
+            level: Level,
+            chunkManager: ChunkManager,
+            spawnType: SpawnType,
+            spawnPos: Vector3i,
+            random: Random
+        ): Boolean {
+            return chunkManager.getBlockIdAt(spawnPos.down()) == MYCELIUM && chunkManager.getLight(spawnPos, 0) > 8
         }
     }
 }

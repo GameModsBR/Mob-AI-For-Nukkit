@@ -11,6 +11,7 @@ import cn.nukkit.block.BlockIds.*
 import cn.nukkit.block.BlockWater
 import cn.nukkit.entity.Attribute
 import cn.nukkit.entity.Entity
+import cn.nukkit.entity.EntityType
 import cn.nukkit.entity.data.EntityFlag
 import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.entity.impl.EntityLiving
@@ -18,6 +19,7 @@ import cn.nukkit.entity.impl.Human
 import cn.nukkit.item.Item
 import cn.nukkit.item.enchantment.Enchantment
 import cn.nukkit.level.BlockPosition
+import cn.nukkit.level.Level
 import cn.nukkit.level.Position
 import cn.nukkit.math.Vector3f
 import cn.nukkit.math.Vector3i
@@ -151,16 +153,8 @@ var Attribute.baseValue: Float
         this.value = value
     }
 
-// The way Nukkit designed entities makes this get called before this object is fully setup,
-// causing NPE on instantiation
-inline fun SmartEntity.ifNotOnInit(action: () -> Unit) {
-    try {
-        definitions.hashCode()
-    } catch (_: NullPointerException) {
-        return
-    }
-
-    action()
+fun EntityType<*>.getSpawnCap(level: Level) = level.effectiveSettings.run {
+    customEntityCaps[identifier] ?: category.getEffectiveCap(level)
 }
 
 class Property<V>(private val property: KMutableProperty<V>): ReadWriteProperty<Entity, V> {

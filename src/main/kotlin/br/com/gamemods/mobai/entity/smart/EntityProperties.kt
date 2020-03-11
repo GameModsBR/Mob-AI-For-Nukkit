@@ -1,6 +1,7 @@
 package br.com.gamemods.mobai.entity.smart
 
 import br.com.gamemods.mobai.ai.pathing.PathNodeType
+import br.com.gamemods.mobai.entity.attribute.AttributeModifier
 import br.com.gamemods.mobai.entity.definition.EntityDefinitionCollection
 import br.com.gamemods.mobai.level.SimpleSound
 import cn.nukkit.entity.Attribute
@@ -22,6 +23,7 @@ interface EntityProperties {
     val lookYawSpeed: Double
     val attackDistanceScalingFactor: Double
     val attributes: MutableMap<Int, Attribute>
+    val attributeModifiers: MutableMap<AttributeModifier.Operation, MutableMap<UUID, AttributeModifier>>
     val definitions: EntityDefinitionCollection
     val pathFindingPenalties: EnumMap<PathNodeType, Float>
     val stepHeight: Float
@@ -41,7 +43,7 @@ interface EntityProperties {
     var distanceTraveled: Float
     var nextStepSoundDistance: Float
     var simpleStepSound: SimpleSound?
-    val healthAttribute: Attribute
+    val maxHealthAttribute: Attribute
     var expDrop: IntRange
     var loveTicks: Int
     var lovingPlayerId: Long?
@@ -56,7 +58,7 @@ interface EntityProperties {
 
     fun addAttribute(attribute: Attribute) {
         if (attribute.id == Attribute.MAX_HEALTH) {
-            val healthAttribute = healthAttribute
+            val healthAttribute = maxHealthAttribute
             healthAttribute.minValue = attribute.minValue
             healthAttribute.maxValue = attribute.maxValue
             healthAttribute.defaultValue = attribute.defaultValue

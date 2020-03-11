@@ -1,6 +1,6 @@
 package br.com.gamemods.mobai.entity.smart.logic
 
-import br.com.gamemods.mobai.entity.AttributeRegistry
+import br.com.gamemods.mobai.entity.attribute.AttributeRegistry
 import br.com.gamemods.mobai.entity.definition.EntityDefinition
 import br.com.gamemods.mobai.entity.definition.EntityPersistence
 import br.com.gamemods.mobai.nbt.forEach

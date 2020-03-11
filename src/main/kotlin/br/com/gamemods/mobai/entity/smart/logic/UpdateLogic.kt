@@ -8,14 +8,8 @@ import cn.nukkit.math.Vector3f
 import kotlin.math.abs
 
 interface UpdateLogic: MoveLogic {
-    var maxHealth: Float
-
-    fun setMaxHealth(maxHealth: Int)
-
     fun onUpdate(currentTick: Int): Boolean {
         val entity = base
-        healthAttribute.maxValue = maxHealth
-        healthAttribute.value = entity.health
         if (entity.closed) {
             return false
         }

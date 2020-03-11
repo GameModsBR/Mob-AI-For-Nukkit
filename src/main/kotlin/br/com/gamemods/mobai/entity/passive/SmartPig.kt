@@ -97,6 +97,7 @@ class SmartPig(type: EntityType<Pig>, chunk: Chunk, tag: CompoundTag)
                 || super<EntityPig>.onInteract(player, item, clickedPos)
     }
 
+    override fun setMaxHealth(maxHealth: Int) = super<SmartAnimal>.setMaxHealth(maxHealth)
     override fun updateMovement() = super<SmartAnimal>.updateMovement()
     override fun onUpdate(currentTick: Int) = super<SmartAnimal>.onUpdate(currentTick)
     override fun attack(source: EntityDamageEvent) = super<EntityPig>.attack(source) && super<SmartAnimal>.attack(source)
@@ -109,11 +110,5 @@ class SmartPig(type: EntityType<Pig>, chunk: Chunk, tag: CompoundTag)
     override fun kill() {
         super<EntityPig>.kill()
         super<SmartAnimal>.kill()
-    }
-
-    override var maxHealth = 20F
-    override fun setMaxHealth(maxHealth: Int) {
-        super.setMaxHealth(maxHealth)
-        this.maxHealth = maxHealth.toFloat()
     }
 }

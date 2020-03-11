@@ -5,11 +5,13 @@ import br.com.gamemods.mobai.entity.Spawnable
 import br.com.gamemods.mobai.entity.brightnessAtEyes
 import br.com.gamemods.mobai.entity.smart.logic.entity
 import br.com.gamemods.mobai.level.difficulty
+import br.com.gamemods.mobai.level.getBlockSkyLightAt
 import br.com.gamemods.mobai.level.getBrightness
 import br.com.gamemods.mobai.level.getLight
 import br.com.gamemods.mobai.math.intFloor
 import cn.nukkit.entity.EntityType
 import cn.nukkit.level.BlockPosition
+import cn.nukkit.level.ChunkManager
 import cn.nukkit.level.Level
 import cn.nukkit.math.Vector3i
 import java.util.*
@@ -42,20 +44,27 @@ interface SmartMonster: SmartEntity {
     }
 
     companion object: Spawnable() {
-        override fun canSpawn(type: EntityType<*>, level: Level, spawnType: SpawnType, spawnPos: Vector3i, random: Random): Boolean {
+        override fun canSpawn(
+            type: EntityType<*>,
+            level: Level,
+            chunkManager: ChunkManager,
+            spawnType: SpawnType,
+            spawnPos: Vector3i,
+            random: Random
+        ): Boolean {
             return level.difficulty != 0
-                    && isSpawnDark(level, spawnPos, random)
-                    && SmartEntity.canSpawn(type, level, spawnType, spawnPos, random)
+                    && isSpawnDark(level, chunkManager, spawnPos, random)
+                    && SmartEntity.canSpawn(type, level, chunkManager, spawnType, spawnPos, random)
         }
 
-        fun isSpawnDark(level: Level, spawnPos: Vector3i, random: Random): Boolean {
-            if (level.getBlockSkyLightAt(spawnPos.x, spawnPos.y, spawnPos.z) > random.nextInt(32)) {
+        fun isSpawnDark(level: Level, chunkManager: ChunkManager, spawnPos: Vector3i, random: Random): Boolean {
+            if (chunkManager.getBlockSkyLightAt(spawnPos.x, spawnPos.y, spawnPos.z) > random.nextInt(32)) {
                 return false
             }
             val light = if (level.isThundering) {
-                level.getLight(spawnPos, 10)
+                chunkManager.getLight(spawnPos, 10)
             } else {
-                level.getFullLight(spawnPos)
+                chunkManager.getLight(spawnPos, level)
             }
             return light <= random.nextInt(8)
         }

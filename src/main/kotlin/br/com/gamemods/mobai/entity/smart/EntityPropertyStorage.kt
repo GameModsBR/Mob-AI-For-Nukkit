@@ -1,6 +1,7 @@
 package br.com.gamemods.mobai.entity.smart
 
 import br.com.gamemods.mobai.ai.pathing.PathNodeType
+import br.com.gamemods.mobai.entity.attribute.AttributeModifier
 import br.com.gamemods.mobai.entity.definition.EntityDefinitionCollection
 import br.com.gamemods.mobai.level.SimpleSound
 import br.com.gamemods.mobai.nbt.firstOrNull
@@ -26,6 +27,7 @@ class EntityPropertyStorage (
     override val lookYawSpeed: Double = 10.0,
     override val attackDistanceScalingFactor: Double = 1.0,
     override val attributes: MutableMap<Int, Attribute> = mutableMapOf(),
+    override val attributeModifiers: MutableMap<AttributeModifier.Operation, MutableMap<UUID, AttributeModifier>> = mutableMapOf(),
     override val definitions: EntityDefinitionCollection = EntityDefinitionCollection(),
     override val pathFindingPenalties: EnumMap<PathNodeType, Float> = EnumMap<PathNodeType, Float>(PathNodeType::class.java),
     override val stepHeight: Float = 0.6F,
@@ -45,7 +47,7 @@ class EntityPropertyStorage (
     override var distanceTraveled: Float = 0F,
     override var nextStepSoundDistance: Float = 0F,
     override var simpleStepSound: SimpleSound? = null,
-    override val healthAttribute: Attribute = Attribute.getAttribute(Attribute.MAX_HEALTH),
+    override val maxHealthAttribute: Attribute = Attribute.getAttribute(Attribute.MAX_HEALTH),
     override var expDrop: IntRange = IntRange.EMPTY,
     override var loveTicks: Int = 0,
     override var lovingPlayerId: Long? = null,

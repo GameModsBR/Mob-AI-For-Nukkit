@@ -1,4 +1,4 @@
-package br.com.gamemods.mobai.entity
+package br.com.gamemods.mobai.entity.attribute
 
 import cn.nukkit.entity.Attribute
 import cn.nukkit.utils.ServerException
@@ -19,12 +19,24 @@ object AttributeRegistry {
     }
 
     fun getIdOrRegister(name: String, minValue: Float, maxValue: Float, defaultValue: Float, shouldSend: Boolean = true): Int {
-        return getOrRegister(name, minValue, maxValue, defaultValue, shouldSend).id
+        return getOrRegister(
+            name,
+            minValue,
+            maxValue,
+            defaultValue,
+            shouldSend
+        ).id
     }
 
     fun load(name: String, minValue: Float, maxValue: Float, defaultValue: Float, currentValue: Float, shouldSend: Boolean = true): Attribute {
         require(name.isNotBlank()) { "Name must not be blank" }
-        return getOrRegister(name, minValue, maxValue, defaultValue, shouldSend).also {
+        return getOrRegister(
+            name,
+            minValue,
+            maxValue,
+            defaultValue,
+            shouldSend
+        ).also {
             it.minValue = minValue
             it.maxValue = maxValue
             it.defaultValue = defaultValue

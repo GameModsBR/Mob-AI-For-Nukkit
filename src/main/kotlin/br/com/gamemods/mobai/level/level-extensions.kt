@@ -1,14 +1,12 @@
 package br.com.gamemods.mobai.level
 
 import br.com.gamemods.mobai.ai.filter.TargetFilter
+import br.com.gamemods.mobai.level.spawning.LevelSettings
 import br.com.gamemods.mobai.math.chunkIndex
 import br.com.gamemods.mobai.math.intCeil
 import br.com.gamemods.mobai.math.intFloor
 import cn.nukkit.block.Block
-import cn.nukkit.block.BlockIds
-import cn.nukkit.block.BlockIds.*
 import cn.nukkit.block.BlockLiquid
-import cn.nukkit.block.BlockWater
 import cn.nukkit.entity.Entity
 import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.level.BlockPosition
@@ -19,17 +17,20 @@ import cn.nukkit.level.chunk.IChunk
 import cn.nukkit.level.gamerule.GameRules
 import cn.nukkit.level.generator.noise.nukkit.f.NoiseF
 import cn.nukkit.math.AxisAlignedBB
+import cn.nukkit.math.Vector2f
 import cn.nukkit.math.Vector3f
 import cn.nukkit.math.Vector3i
 import cn.nukkit.player.Player
-import kotlin.math.max
 import kotlin.reflect.KClass
 import kotlin.reflect.full.cast
 import kotlin.reflect.full.safeCast
 
 val Level.height: Int get() = if (dimension == Level.DIMENSION_NETHER) 127 else 255
 val Level.doMobLoot: Boolean get() = gameRules[GameRules.DO_MOB_LOOT]
-val Level.difficulty get() = server.difficulty
+val Level.effectiveSettings get() = LevelSettings.getEffective(this)
+val Level.difficulty get() = effectiveSettings.difficulty.takeIf { it >= 0 } ?: server.difficulty
+val Level.spawnAnimals get() = effectiveSettings.spawnAnimals ?: true
+val Level.spawnMonsters get() = effectiveSettings.spawnMonsters ?: true
 
 fun Level.findClosestPlayer(filter: TargetFilter, cause: Entity): Player? {
     return findClosestPlayer(filter, cause, cause.position)
@@ -65,6 +66,27 @@ fun Level.findPlayers(near: Vector3f, maxDistance: Double = -1.0, ignoreCreative
             }
         }
         .map { it to it.distanceSquared(near) }
+        .run {
+            if (maxDistance >= 0) {
+                filter { (_, distance) ->
+                    distance <= maxDistance
+                }
+            } else {
+                this
+            }
+        }
+}
+
+fun Level.findPlayers(near: Vector2f, maxDistance: Double = -1.0, ignoreCreative: Boolean = false): Sequence<Pair<Player, Double>> {
+    return players.values.asSequence()
+        .run {
+            if (ignoreCreative) {
+                filterNot { it.isSpectator || it.isCreative }
+            } else {
+                filterNot { it.isSpectator }
+            }
+        }
+        .map { it to Vector2f(it.x, it.z).distanceSquared(near) }
         .run {
             if (maxDistance >= 0) {
                 filter { (_, distance) ->
@@ -141,21 +163,14 @@ private fun <T : Entity> findClosestEntity(
 fun Level.isFlooded(pos: Vector3i): Boolean {
     val chunk = getLoadedChunk(pos) ?: return false
     val chunkIndex = pos.chunkIndex()
-    return when (chunk.getBlockId(chunkIndex, 0)) {
-        WATER, FLOWING_WATER -> true
-        AIR -> false
-        else -> when (chunk.getBlockId(chunkIndex, 1)) {
-            WATER, FLOWING_WATER -> true
-            else -> false
-        }
-    }
+    return chunk.isFlooded(chunkIndex)
 }
 
 fun Level.isSkyVisible(pos: Vector3f): Boolean {
     return canBlockSeeSky(pos.asVector3i())
 }
 
-fun Level.getLoadedChunk(pos: Vector3i): Chunk? = getLoadedChunk(pos.x shr 4, pos.z shr 4)
+fun Level.getLoadedChunk(pos: Vector3i): Chunk? = getLoadedChunk(pos.chunkX, pos.chunkZ)
 
 private fun brightnessDelta(dimension: Int) = when (dimension) {
     Level.DIMENSION_NETHER -> 0.1F
@@ -171,27 +186,29 @@ private val lightLevelToBrightness = Array(3) { dimension ->
 }
 
 fun Level.getBrightness(pos: Vector3i): Float {
-    return lightLevelToBrightness.getOrNull(dimension)?.getOrNull(getFullLightFixed(pos)) ?: 0F
-}
-
-//TODO Remove after https://github.com/NukkitX/Nukkit/pull/1235 gets merged
-@Deprecated("Temporary workaround")
-fun Level.getFullLightFixed(pos: Vector3i): Int {
-    val chunk: Chunk = this.getChunk(pos.chunkX, pos.chunkZ)
-    var level = chunk.getSection(pos.y shr 4)?.getSkyLight(pos.x and 0x0f, pos.y and 0x0f, pos.z and 0x0f)?.toInt() ?: 0
-    level -= this.skyLightSubtracted.toInt()
-    if (level < 15) {
-        level = chunk.getBlockLight(pos.x and 0x0f, pos.y and 0xff, pos.z and 0x0f).toInt().coerceAtLeast(level)
-    }
-    return level
+    return lightLevelToBrightness.getOrNull(dimension)?.getOrNull(getLight(pos)) ?: 0F
 }
 
 fun Level.getLight(pos: Vector3i, ambientDarkness: Int = skyLightSubtracted.intCeil()): Int {
+    return (this as ChunkManager).getLight(pos, ambientDarkness)
+}
+
+fun ChunkManager.getLight(pos: Vector3i, level: Level) = getLight(pos, level.skyLightSubtracted.intCeil())
+
+fun ChunkManager.getLight(pos: Vector3i, ambientDarkness: Int): Int {
     val chunk = getChunk(pos.chunkX, pos.chunkZ) ?: return 0
     val chunkIndex = pos.chunkIndex()
-    val skyLight = chunk.getSkyLight(chunkIndex.x, chunkIndex.y, chunkIndex.z) - ambientDarkness
-    val blockLight = chunk.getBlockLight(chunkIndex.x, chunkIndex.y, chunkIndex.z).toInt()
-    return max(blockLight, skyLight)
+    return chunk.getLight(chunkIndex, ambientDarkness)
+}
+
+fun ChunkManager.getBlockSkyLightAt(x: Int, y: Int, z: Int): Int {
+    val chunk = getChunk(x shr 4, z shr 4) ?: return 0
+    return chunk.getSkyLight(x, y, z).toInt()
+}
+
+fun ChunkManager.getBlockSkyLightAt(pos: Vector3i): Int {
+    val chunk = getChunk(pos.chunkX, pos.chunkZ) ?: return 0
+    return chunk.getSkyLight(pos.chunkIndex())
 }
 
 fun Level.hasCollision(entity: Entity?, bb: AxisAlignedBB, entities: Boolean, fluids: Boolean): Boolean {
@@ -239,8 +256,8 @@ fun ChunkManager.getBlockIdAt(pos: BlockPosition) = getBlockIdAt(pos.x, pos.y, p
 fun ChunkManager.getBlockAt(pos: BlockPosition) = get(pos.x, pos.y, pos.z, pos.layer)
 fun ChunkManager.getBlockDataAt(pos: BlockPosition) = getBlockDataAt(pos.x, pos.y, pos.z, pos.layer)
 
-fun ChunkManager.getChunk(pos: Vector3i): IChunk? = getChunk(pos.x shr 4, pos.z shr 4)
-fun Level.getChunk(pos: Vector3i) = getChunk(pos.x shr 4, pos.z shr 4)
+fun ChunkManager.getChunk(pos: Vector3i): IChunk? = getChunk(pos.chunkX, pos.chunkZ)
+fun Level.getChunk(pos: Vector3i) = getChunk(pos.chunkX, pos.chunkZ)
 
 operator fun ChunkManager.get(pos: Vector3f, layer: Int = 0) = get(pos.asVector3i(), layer)
 operator fun ChunkManager.get(pos: Vector3i, layer: Int = 0) = get(pos.x, pos.y, pos.z, layer)
@@ -252,14 +269,5 @@ operator fun Level.get(x: Int, y: Int, z: Int, layer: Int = 0) = getBlock(x, y, 
 fun ChunkManager.getWaterDamage(blockPos: Vector3i): Int {
     val chunk = getChunk(blockPos).takeIf { it !is EmptyChunk } ?: return -1
     val chunkIndex = blockPos.chunkIndex()
-    for(layer in 0..1) {
-        val block = chunk.getBlock(chunkIndex, layer)
-        if (block.id == BlockIds.AIR) {
-            return -1
-        }
-        if (block is BlockWater) {
-            return block.damage
-        }
-    }
-    return -1
+    return chunk.getWaterDamage(chunkIndex)
 }

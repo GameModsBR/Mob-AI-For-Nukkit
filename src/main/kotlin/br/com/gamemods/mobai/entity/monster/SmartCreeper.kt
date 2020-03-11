@@ -5,12 +5,12 @@ import br.com.gamemods.mobai.entity.Flag
 import br.com.gamemods.mobai.entity.IntData
 import br.com.gamemods.mobai.entity.definition.EntityDefinitionIds.CHARGED_CREEPER
 import br.com.gamemods.mobai.entity.definition.EntityDefinitionIds.FORCED_EXPLODING
-import br.com.gamemods.mobai.entity.ifNotOnInit
 import br.com.gamemods.mobai.entity.lootingLevel
 import br.com.gamemods.mobai.entity.smart.EntityAI
 import br.com.gamemods.mobai.entity.smart.EntityProperties
 import br.com.gamemods.mobai.entity.smart.EntityPropertyStorage
 import br.com.gamemods.mobai.entity.smart.SmartMonster
+import br.com.gamemods.mobai.entity.smart.logic.ifNotOnInit
 import br.com.gamemods.mobai.math.clamp
 import cn.nukkit.entity.Entity
 import cn.nukkit.entity.EntityType
@@ -230,6 +230,7 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
         return drops.toTypedArray()
     }
 
+    override fun setMaxHealth(maxHealth: Int) = super<SmartMonster>.setMaxHealth(maxHealth)
     override fun updateMovement() = super<SmartMonster>.updateMovement()
     override fun onUpdate(currentTick: Int) = super<SmartMonster>.onUpdate(currentTick)
     override fun attack(source: EntityDamageEvent) = super<EntityCreeper>.attack(source) && super<SmartMonster>.attack(source)
@@ -242,11 +243,5 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
     override fun kill() {
         super<EntityCreeper>.kill()
         super<SmartMonster>.kill()
-    }
-
-    override var maxHealth = 20F
-    override fun setMaxHealth(maxHealth: Int) {
-        super.setMaxHealth(maxHealth)
-        this.maxHealth = maxHealth.toFloat()
     }
 }

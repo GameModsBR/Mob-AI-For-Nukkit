@@ -1,0 +1,10 @@
+level-settings:
+  fallback:
+    difficulty: -1
+    spawn-animals: true
+    spawn-monsters: true
+    custom-category-caps: {}
+    custom-entity-caps: {}
+  dimension-default: {}
+  level: {}
+

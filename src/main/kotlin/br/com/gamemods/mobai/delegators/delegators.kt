@@ -58,3 +58,39 @@ class Priority<E: Any, V>(
     }
 
 }
+
+inline fun <R, T> observable(initialValue: T, crossinline onChange: (thisRef: R, property: KProperty<*>, oldValue: T, newValue: T) -> Unit)
+        = object : ReferencedObservable<R, T>(initialValue) {
+    override fun afterChange(thisRef: R, property: KProperty<*>, oldValue: T, originalValue: T, newValue: T) {
+        onChange(thisRef, property, oldValue, newValue)
+    }
+}
+
+inline fun <R, T> transforming(initialValue: T, crossinline transform: (thisRef: R, property: KProperty<*>, oldValue: T, newValue: T) -> T)
+        = object : ReferencedObservable<R, T>(initialValue) {
+    override fun transform(thisRef: R, property: KProperty<*>, oldValue: T, newValue: T) = transform(thisRef, property, oldValue, newValue)
+}
+
+abstract class ReferencedObservable<R, T>(initialValue: T): ReadWriteProperty<R, T> {
+    protected var value = initialValue
+
+    protected open fun beforeChange(thisRef: R, property: KProperty<*>, oldValue: T, newValue: T): Boolean = true
+
+    protected open fun transform(thisRef: R, property: KProperty<*>, oldValue: T, newValue: T): T = newValue
+
+    protected open fun afterChange(thisRef: R, property: KProperty<*>, oldValue: T, originalValue: T, newValue: T) {}
+
+    override fun getValue(thisRef: R, property: KProperty<*>): T {
+        return value
+    }
+
+    override fun setValue(thisRef: R, property: KProperty<*>, value: T) {
+        val oldValue = this.value
+        if (!beforeChange(thisRef, property, oldValue, value)) {
+            return
+        }
+        val transformed = transform(thisRef, property, oldValue, value)
+        this.value = transformed
+        afterChange(thisRef, property, oldValue, value, transformed)
+    }
+}
