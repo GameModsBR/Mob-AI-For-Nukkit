@@ -46,20 +46,6 @@ inline fun <R: Any, reified T: Any?> nullableCustomField(initialValue: T, crossi
     }
 }
 
-private inline fun <R, T> ReferencedObservableRWProperty<R, T>.changeValue(
-    thisRef: R, property: KProperty<*>, value: T, setter: (transformed: T) -> Unit
-) {
-    synchronized(customFields) {
-        val oldValue = getValue(thisRef, property)
-        if (!beforeChange(thisRef, property, oldValue, value)) {
-            return
-        }
-        val transformed = transform(thisRef, property, oldValue, value)
-        setter(transformed)
-        afterChange(thisRef, property, oldValue, value, transformed)
-    }
-}
-
 open class ObservableNotNullCustomField<R: Any, T: Any>(tClass: Class<T>, initialValue: T)
     : NotNullCustomField<R, T>(tClass, initialValue), ReferencedObservableRWProperty<R, T> {
     override fun setValue(thisRef: R, property: KProperty<*>, value: T) {
@@ -79,43 +65,72 @@ open class ObservableNullableCustomField<R: Any, T: Any?>(tClass: Class<T>, init
 }
 
 open class NotNullCustomField<R: Any, T: Any>(protected val tClass: Class<T>, protected val initialValue: T)
-    : ReadWriteProperty<R, T> {
+    : ReadWriteProperty<R, T>, CustomFieldHandler<R>() {
     override fun getValue(thisRef: R, property: KProperty<*>): T {
-        synchronized(customFields) {
-            val value = customFields.getOrPut(thisRef, ::mutableMapOf)[property] ?: return initialValue
-            return tClass.cast(value)
+        return usingThisFieldsIfPresent(thisRef) { thisFields ->
+            thisFields?.get(property)?.let(tClass::cast) ?: initialValue
         }
     }
 
     override fun setValue(thisRef: R, property: KProperty<*>, value: T) {
-        synchronized(customFields) {
-            if (value === initialValue) {
-                customFields[thisRef]?.remove(property)
-            } else {
-                customFields.getOrPut(thisRef, ::mutableMapOf)[property] = value
-            }
-        }
+        setOrRemoveFieldValue(thisRef, property, initialValue, value)
     }
 }
 
-open class NullableCustomField<R: Any, T: Any?>(protected val tClass: Class<T>, protected val initialValue: T):
-    ReadWriteProperty<R, T?> {
+open class NullableCustomField<R: Any, T: Any?>(protected val tClass: Class<T>, protected val initialValue: T)
+    : ReadWriteProperty<R, T?>, CustomFieldHandler<R>() {
     override fun getValue(thisRef: R, property: KProperty<*>): T? {
-        synchronized(customFields) {
-            val thisFields = customFields.getOrPut(thisRef, ::mutableMapOf)
-            if (property !in thisFields) return initialValue
-            val value = thisFields[property] ?: return null
-            return tClass.cast(value)
+        return usingThisFieldsIfPresent(thisRef) { thisFields ->
+            if (thisFields?.contains(property) == true) {
+                thisFields[property]?.let(tClass::cast)
+            } else {
+                initialValue
+            }
         }
     }
 
     override fun setValue(thisRef: R, property: KProperty<*>, value: T?) {
+        setOrRemoveFieldValue(thisRef, property, initialValue, value)
+    }
+}
+
+
+abstract class CustomFieldHandler<R: Any> {
+    protected fun <O> usingThisFields(thisRef: R, function: (MutableMap<KProperty<*>, Any?>) -> O): O {
+        return synchronized(customFields) {
+            val thisFields = customFields.getOrPut(thisRef, ::mutableMapOf)
+            function(thisFields)
+        }
+    }
+
+    protected fun <O> usingThisFieldsIfPresent(thisRef: R, function: (thisFields: MutableMap<KProperty<*>, Any?>?) -> O): O {
+        return synchronized(customFields) {
+            val thisFields = customFields[thisRef]
+            function(thisFields)
+        }
+    }
+
+    protected fun setOrRemoveFieldValue(thisRef: R, property: KProperty<*>, initialValue: Any?, newValue: Any?) {
         synchronized(customFields) {
-            if (value === initialValue) {
+            if (newValue === initialValue) {
                 customFields[thisRef]?.remove(property)
             } else {
-                customFields.getOrPut(thisRef, ::mutableMapOf)[property] = value
+                customFields.getOrPut(thisRef, ::mutableMapOf)[property] = newValue
             }
+        }
+    }
+
+    protected fun <R, T> ReferencedObservableRWProperty<R, T>.changeValue(
+        thisRef: R, property: KProperty<*>, value: T, setter: (transformed: T) -> Unit
+    ) {
+        synchronized(customFields) {
+            val oldValue = getValue(thisRef, property)
+            if (!beforeChange(thisRef, property, oldValue, value)) {
+                return
+            }
+            val transformed = transform(thisRef, property, oldValue, value)
+            setter(transformed)
+            afterChange(thisRef, property, oldValue, value, transformed)
         }
     }
 }
