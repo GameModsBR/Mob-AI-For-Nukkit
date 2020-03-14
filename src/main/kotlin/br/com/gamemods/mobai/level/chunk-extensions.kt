@@ -6,6 +6,7 @@ import cn.nukkit.block.BlockIds
 import cn.nukkit.block.BlockWater
 import cn.nukkit.blockentity.BlockEntity
 import cn.nukkit.level.BlockPosition
+import cn.nukkit.level.biome.Biome
 import cn.nukkit.level.chunk.IChunk
 import cn.nukkit.math.Vector3i
 import cn.nukkit.utils.Identifier
@@ -44,6 +45,9 @@ fun IChunk.getBlockId(pos: BlockPosition) = getBlockId(pos, pos.layer)
 fun IChunk.getBlock(pos: BlockPosition) = getBlock(pos, pos.layer)
 fun IChunk.getBlockData(pos: BlockPosition) = getBlockData(pos, pos.layer)
 fun IChunk.getBlockRuntimeIdUnsafe(pos: BlockPosition) = getBlockRuntimeIdUnsafe(pos, pos.layer)
+
+fun IChunk.getBiomeId(pos: Vector3i) = getBiome(pos.x, pos.z)
+fun IChunk.getBiome(pos: Vector3i): Biome = Biome.getBiome(getBiomeId(pos))
 
 operator fun IChunk.get(pos: Vector3i, layer: Int = 0) = getBlock(pos, layer)
 operator fun IChunk.get(pos: BlockPosition) = getBlock(pos)

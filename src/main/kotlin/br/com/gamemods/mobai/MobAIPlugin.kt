@@ -1,11 +1,12 @@
 package br.com.gamemods.mobai
 
 import br.com.gamemods.mobai.ExtraAttributeIds.UNDERWATER_MOVEMENT
-import br.com.gamemods.mobai.entity.attribute.AttributeRegistry.getIdOrRegister
 import br.com.gamemods.mobai.entity.EntityCategory
+import br.com.gamemods.mobai.entity.attribute.AttributeRegistry.getIdOrRegister
 import br.com.gamemods.mobai.entity.registerEntities
 import br.com.gamemods.mobai.level.spawning.LevelSettings
 import br.com.gamemods.mobai.level.spawning.NaturalSpawnTask
+import br.com.gamemods.mobai.level.spawning.registerVanillaBiomes
 import cn.nukkit.event.EventHandler
 import cn.nukkit.event.EventPriority
 import cn.nukkit.event.Listener
@@ -26,6 +27,7 @@ class MobAIPlugin: PluginBase() {
         saveDefaultConfig()
 
         registerAttributes()
+        registerVanillaBiomes()
         registerEntities()
 
         server.levels.forEach(this::onLevelLoad)
