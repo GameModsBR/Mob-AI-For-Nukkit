@@ -1,11 +1,9 @@
 package br.com.gamemods.mobai.delegators
 
 import cn.nukkit.entity.Entity
-import java.lang.reflect.Field
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
-import kotlin.reflect.full.cast
 import kotlin.reflect.full.safeCast
 
 inline fun <reified E: Any, V> priority(main: ReadWriteProperty<E, V>, fallback: ReadWriteProperty<Entity, V>) = Priority(E::class, main, fallback)
@@ -61,26 +59,30 @@ class Priority<E: Any, V>(
 
 }
 
-inline fun <R, T> observable(initialValue: T, crossinline onChange: (thisRef: R, property: KProperty<*>, oldValue: T, newValue: T) -> Unit)
+typealias ReferencedObservableListener<R, T> = (thisRef: R, property: KProperty<*>, oldValue: T, newValue: T) -> Unit
+inline fun <R, T> observable(initialValue: T, crossinline onChange: ReferencedObservableListener<R, T>)
         = object : ReferencedObservable<R, T>(initialValue) {
     override fun afterChange(thisRef: R, property: KProperty<*>, oldValue: T, originalValue: T, newValue: T) {
         onChange(thisRef, property, oldValue, newValue)
     }
 }
 
-inline fun <R, T> transforming(initialValue: T, crossinline transform: (thisRef: R, property: KProperty<*>, oldValue: T, newValue: T) -> T)
+typealias ReferencedTransformingListener<R, T> = (thisRef: R, property: KProperty<*>, oldValue: T, newValue: T) -> T
+inline fun <R, T> transforming(initialValue: T, crossinline transform: ReferencedTransformingListener<R, T>)
         = object : ReferencedObservable<R, T>(initialValue) {
     override fun transform(thisRef: R, property: KProperty<*>, oldValue: T, newValue: T) = transform(thisRef, property, oldValue, newValue)
 }
 
-abstract class ReferencedObservable<R, T>(initialValue: T): ReadWriteProperty<R, T> {
+interface ReferencedObservableRWProperty<R, T>: ReadWriteProperty<R, T> {
+    fun beforeChange(thisRef: R, property: KProperty<*>, oldValue: T, newValue: T): Boolean = true
+
+    fun transform(thisRef: R, property: KProperty<*>, oldValue: T, newValue: T): T = newValue
+
+    fun afterChange(thisRef: R, property: KProperty<*>, oldValue: T, originalValue: T, newValue: T) {}
+}
+
+abstract class ReferencedObservable<R, T>(initialValue: T): ReferencedObservableRWProperty<R, T> {
     protected var value = initialValue
-
-    protected open fun beforeChange(thisRef: R, property: KProperty<*>, oldValue: T, newValue: T): Boolean = true
-
-    protected open fun transform(thisRef: R, property: KProperty<*>, oldValue: T, newValue: T): T = newValue
-
-    protected open fun afterChange(thisRef: R, property: KProperty<*>, oldValue: T, originalValue: T, newValue: T) {}
 
     override fun getValue(thisRef: R, property: KProperty<*>): T {
         return value
@@ -94,35 +96,5 @@ abstract class ReferencedObservable<R, T>(initialValue: T): ReadWriteProperty<R,
         val transformed = transform(thisRef, property, oldValue, value)
         this.value = transformed
         afterChange(thisRef, property, oldValue, value, transformed)
-    }
-}
-
-inline fun <reified R: Any> intField(name: String) = IntFieldReflection(R::class.java.getDeclaredField(name))
-inline fun <reified R: Any, reified T: Any> field(name: String) = FieldReflection(T::class, R::class.java.getDeclaredField(name))
-
-class IntFieldReflection(private val field: Field) {
-    init {
-        field.isAccessible = true
-    }
-    operator fun getValue(thisRef: Any?, property: KProperty<*>): Int {
-        return field.getInt(thisRef)
-    }
-
-    operator fun setValue(thisRef: Any?, property: KProperty<*>, value: Int) {
-        field.setInt(thisRef, value)
-    }
-}
-
-class FieldReflection<T: Any>(private val kClass: KClass<T>, private val field: Field): ReadWriteProperty<Any?, T> {
-    init {
-        field.isAccessible = true
-    }
-
-    override fun getValue(thisRef: Any?, property: KProperty<*>): T {
-        return kClass.cast(field[thisRef])
-    }
-
-    override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
-        field[thisRef] = value
     }
 }
