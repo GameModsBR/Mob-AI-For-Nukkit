@@ -1,7 +1,7 @@
 package br.com.gamemods.mobai.entity
 
-import br.com.gamemods.mobai.delegators.NoOp
-import br.com.gamemods.mobai.delegators.priority
+import br.com.gamemods.mobai.delegators.priority.NoOp
+import br.com.gamemods.mobai.delegators.priority.priority
 import cn.nukkit.entity.Entity
 import cn.nukkit.entity.data.EntityData
 import cn.nukkit.entity.data.EntityFlag

@@ -1,7 +1,7 @@
 package br.com.gamemods.mobai.entity.smart.logic
 
-import br.com.gamemods.mobai.delegators.customField
-import br.com.gamemods.mobai.delegators.intField
+import br.com.gamemods.mobai.delegators.custom.customField
+import br.com.gamemods.mobai.delegators.reflection.intField
 import br.com.gamemods.mobai.entity.smart.EntityAI
 import br.com.gamemods.mobai.entity.smart.EntityProperties
 import br.com.gamemods.mobai.entity.smart.SmartEntity
@@ -54,18 +54,18 @@ inline val SplitLogic.type: EntityType<*> get() = entity.type
 private var BaseEntity.maxHealthField by intField<BaseEntity>("maxHealth")
 
 var SplitLogic.maxHealth by customField(20F, transforming = { thisRef, _, _, newValue ->
-    thisRef.smart {
-        ifNotOnInit {
-            val updated = recalculateAttribute(maxHealthAttribute)
-            if (updated != newValue) {
-                base.maxHealthField = updated.toInt()
-                return@customField updated
+        thisRef.smart {
+            ifNotOnInit {
+                val updated = recalculateAttribute(maxHealthAttribute)
+                if (updated != newValue) {
+                    base.maxHealthField = updated.toInt()
+                    return@customField updated
+                }
             }
+            base.maxHealthField = newValue.toInt()
         }
-        base.maxHealthField = newValue.toInt()
-    }
-    newValue
-})
+        newValue
+    })
 
 @ExperimentalContracts
 inline fun SplitLogic.smart(operation: SmartEntity.() -> Unit) {

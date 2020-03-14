@@ -1,4 +1,4 @@
-package br.com.gamemods.mobai.delegators
+package br.com.gamemods.mobai.delegators.reflection
 
 import java.lang.reflect.Field
 import kotlin.properties.ReadWriteProperty

@@ -1,5 +1,8 @@
-package br.com.gamemods.mobai.delegators
+package br.com.gamemods.mobai.delegators.custom
 
+import br.com.gamemods.mobai.delegators.observable.ReferencedObservableListener
+import br.com.gamemods.mobai.delegators.observable.ReferencedObservableRWProperty
+import br.com.gamemods.mobai.delegators.observable.ReferencedTransformingListener
 import java.util.*
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
