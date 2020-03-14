@@ -4,7 +4,6 @@ import br.com.gamemods.mobai.delegators.observable.ReferencedObservableListener
 import br.com.gamemods.mobai.delegators.observable.ReferencedObservableRWProperty
 import br.com.gamemods.mobai.delegators.observable.ReferencedTransformingListener
 import java.util.*
-import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 private val customFields = WeakHashMap<Any, MutableMap<KProperty<*>, Any?>>()
@@ -45,55 +44,6 @@ inline fun <R: Any, reified T: Any?> nullableCustomField(initialValue: T, crossi
         return transforming(thisRef, property, oldValue, newValue)
     }
 }
-
-open class ObservableNotNullCustomField<R: Any, T: Any>(tClass: Class<T>, initialValue: T)
-    : NotNullCustomField<R, T>(tClass, initialValue), ReferencedObservableRWProperty<R, T> {
-    override fun setValue(thisRef: R, property: KProperty<*>, value: T) {
-        changeValue(thisRef, property, value) {
-            super.setValue(thisRef, property, it)
-        }
-    }
-}
-
-open class ObservableNullableCustomField<R: Any, T: Any?>(tClass: Class<T>, initialValue: T)
-    : NullableCustomField<R, T>(tClass, initialValue), ReferencedObservableRWProperty<R, T?> {
-    override fun setValue(thisRef: R, property: KProperty<*>, value: T?) {
-        changeValue(thisRef, property, value) {
-            super.setValue(thisRef, property, it)
-        }
-    }
-}
-
-open class NotNullCustomField<R: Any, T: Any>(protected val tClass: Class<T>, protected val initialValue: T)
-    : ReadWriteProperty<R, T>, CustomFieldHandler<R>() {
-    override fun getValue(thisRef: R, property: KProperty<*>): T {
-        return usingThisFieldsIfPresent(thisRef) { thisFields ->
-            thisFields?.get(property)?.let(tClass::cast) ?: initialValue
-        }
-    }
-
-    override fun setValue(thisRef: R, property: KProperty<*>, value: T) {
-        setOrRemoveFieldValue(thisRef, property, initialValue, value)
-    }
-}
-
-open class NullableCustomField<R: Any, T: Any?>(protected val tClass: Class<T>, protected val initialValue: T)
-    : ReadWriteProperty<R, T?>, CustomFieldHandler<R>() {
-    override fun getValue(thisRef: R, property: KProperty<*>): T? {
-        return usingThisFieldsIfPresent(thisRef) { thisFields ->
-            if (thisFields?.contains(property) == true) {
-                thisFields[property]?.let(tClass::cast)
-            } else {
-                initialValue
-            }
-        }
-    }
-
-    override fun setValue(thisRef: R, property: KProperty<*>, value: T?) {
-        setOrRemoveFieldValue(thisRef, property, initialValue, value)
-    }
-}
-
 
 abstract class CustomFieldHandler<R: Any> {
     protected fun <O> usingThisFields(thisRef: R, function: (MutableMap<KProperty<*>, Any?>) -> O): O {
