@@ -4,6 +4,9 @@ import br.com.gamemods.mobai.ExtraAttributeIds.UNDERWATER_MOVEMENT
 import br.com.gamemods.mobai.entity.EntityCategory
 import br.com.gamemods.mobai.entity.attribute.AttributeRegistry.getIdOrRegister
 import br.com.gamemods.mobai.entity.registerEntities
+import br.com.gamemods.mobai.level.Dimension
+import br.com.gamemods.mobai.level.dimensionType
+import br.com.gamemods.mobai.level.feature.FeatureRegistry
 import br.com.gamemods.mobai.level.feature.registerFeatures
 import br.com.gamemods.mobai.level.spawning.LevelSettings
 import br.com.gamemods.mobai.level.spawning.NaturalSpawnTask
@@ -11,10 +14,12 @@ import br.com.gamemods.mobai.level.spawning.registerVanillaBiomes
 import br.com.gamemods.mobai.level.spawning.registerVanillaDimensions
 import cn.nukkit.event.EventHandler
 import cn.nukkit.event.EventPriority
+import cn.nukkit.event.HandlerList
 import cn.nukkit.event.Listener
 import cn.nukkit.event.level.LevelLoadEvent
 import cn.nukkit.event.level.LevelSaveEvent
 import cn.nukkit.event.level.LevelUnloadEvent
+import cn.nukkit.event.server.RegistriesClosedEvent
 import cn.nukkit.level.Level
 import cn.nukkit.plugin.PluginBase
 import cn.nukkit.utils.ConfigSection
@@ -38,6 +43,15 @@ class MobAIPlugin: PluginBase() {
 
         server.scheduler.scheduleRepeatingTask(this, NaturalSpawnTask, 1)
         server.pluginManager.registerEvents(LevelPersistenceListener(), this)
+
+        server.pluginManager.registerEvents(object : Listener {
+            @EventHandler
+            fun onRegistryClose(ev: RegistriesClosedEvent) {
+                assert(!ev.isCancelled)
+                FeatureRegistry.close()
+                HandlerList.unregisterAll(this)
+            }
+        }, this)
     }
 
     override fun onDisable() {
@@ -98,7 +112,7 @@ class MobAIPlugin: PluginBase() {
         val group = config.getSection("level-settings")
         LevelSettings.fallback = loadSettingsSection(group.getSection("fallback"))
         group.getSection("dimension-default")
-            .mapNotNull { (it.key.toIntOrNull() ?: return@mapNotNull null) to (it.value as? ConfigSection ?: return@mapNotNull null) }
+            .mapNotNull { Dimension(it.key.toIntOrNull() ?: return@mapNotNull null) to (it.value as? ConfigSection ?: return@mapNotNull null) }
             .map { (dim, conf) -> dim to loadSettingsSection(conf) }
             .onEach { (dim, conf) -> LevelSettings.defaultByDimension[dim] = conf }
             .map { (dim) -> dim }
@@ -138,7 +152,7 @@ class MobAIPlugin: PluginBase() {
 
     private fun onLevelSave(level: Level) {
         val currentConfig = LevelSettings[level] ?: return
-        val parentConfig = LevelSettings.defaultByDimension[level.dimension] ?: LevelSettings.fallback
+        val parentConfig = LevelSettings.defaultByDimension[level.dimensionType] ?: LevelSettings.fallback
         if (currentConfig == parentConfig) {
             val configs = config.getSection("level-settings.level")
             if (level.id in configs) {

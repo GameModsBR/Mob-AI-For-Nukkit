@@ -74,12 +74,19 @@ interface PersistenceLogic: SplitLogic {
             add(NBTIO.putItemHelper(equipments.boots))
             nbt.putList(this)
         }
+        val mainHandComp = NBTIO.putItemHelper(equipments.mainHand)
+        val offHandComp = NBTIO.putItemHelper(equipments.offHand)
+        if (!equipments.mainHand.isNull) {
+            nbt.putCompound("ItemInHand", mainHandComp.copy())
+        }
+        // TODO ItemInOffhand?
+        // Bedrock actually have to save it twice... Maybe it is a backward compatibility behaviour, who knows...
         ListTag<CompoundTag>("Mainhand").apply {
-            add(NBTIO.putItemHelper(equipments.mainHand))
+            add(mainHandComp)
             nbt.putList(this)
         }
         ListTag<CompoundTag>("Offhand").apply {
-            add(NBTIO.putItemHelper(equipments.offHand))
+            add(offHandComp)
             nbt.putList(this)
         }
     }

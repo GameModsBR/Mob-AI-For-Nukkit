@@ -4,7 +4,7 @@ import br.com.gamemods.mobai.entity.FutureEntityTypes.ZOMBIFIED_PIGLIN
 import br.com.gamemods.mobai.level.spawning.SpawnEntry
 import cn.nukkit.entity.EntityTypes.*
 
-class NetherFortressFeature: StructureEntityFeature {
+open class NetherFortressFeature: StructureEntityFeature {
     override val name = "Fortress"
     override val monsterSpawns = mutableListOf(
         SpawnEntry(BLAZE, 10, 2, 3),

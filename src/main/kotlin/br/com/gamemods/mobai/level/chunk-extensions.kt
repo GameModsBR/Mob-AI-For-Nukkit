@@ -10,7 +10,6 @@ import cn.nukkit.level.biome.Biome
 import cn.nukkit.level.chunk.IChunk
 import cn.nukkit.math.Vector3i
 import cn.nukkit.utils.Identifier
-import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.math.max
@@ -26,7 +25,6 @@ fun IChunk.isEmpty(minY: Int, maxY: Int): Boolean {
 
 private fun Vector3i.onlyValidHeights() = takeIf { y in 0..255 }
 
-@ExperimentalContracts
 private inline fun <R> Vector3i.ifHasValidHeight(action: () -> R): R? {
     contract { callsInPlace(action, InvocationKind.AT_MOST_ONCE) }
     return onlyValidHeights()?.let { action() }

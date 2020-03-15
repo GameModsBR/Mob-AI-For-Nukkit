@@ -11,7 +11,6 @@ import cn.nukkit.entity.EntityType
 import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.level.Level
 import cn.nukkit.math.Vector3f
-import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
@@ -67,7 +66,6 @@ var SplitLogic.maxHealth by customField(20F, transforming = { thisRef, _, _, new
         newValue
     })
 
-@ExperimentalContracts
 inline fun SplitLogic.smart(operation: SmartEntity.() -> Unit) {
     contract {
         callsInPlace(operation, InvocationKind.EXACTLY_ONCE)
@@ -75,7 +73,6 @@ inline fun SplitLogic.smart(operation: SmartEntity.() -> Unit) {
     smart.apply(operation)
 }
 
-@ExperimentalContracts
 inline fun SplitLogic.base(operation: BaseEntity.() -> Unit) {
     contract {
         callsInPlace(operation, InvocationKind.EXACTLY_ONCE)

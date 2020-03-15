@@ -1,5 +1,7 @@
 package br.com.gamemods.mobai.entity
 
+import br.com.gamemods.mobai.level.Dimension
+import br.com.gamemods.mobai.level.dimensionType
 import br.com.gamemods.mobai.level.spawning.LevelSettings
 import cn.nukkit.level.Level
 
@@ -18,11 +20,11 @@ enum class EntityCategory(val spawnCap: Int, val isPeaceful: Boolean, val isAnim
         return customCategoryCaps[this@EntityCategory]
     }
 
-    fun getEffectiveCap(dim: Int) : Int {
+    fun getEffectiveCap(dim: Dimension) : Int {
         return LevelSettings.defaultByDimension[dim]?.customCap ?: LevelSettings.fallback.customCap ?: spawnCap
     }
 
     fun getEffectiveCap(level: Level): Int {
-        return LevelSettings[level]?.customCap ?: getEffectiveCap(level.dimension)
+        return LevelSettings[level]?.customCap ?: getEffectiveCap(level.dimensionType)
     }
 }

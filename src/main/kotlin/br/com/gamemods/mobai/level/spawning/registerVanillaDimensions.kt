@@ -2,6 +2,7 @@ package br.com.gamemods.mobai.level.spawning
 
 import br.com.gamemods.mobai.MobAIPlugin
 import br.com.gamemods.mobai.entity.EntityCategory
+import br.com.gamemods.mobai.level.Dimension
 import br.com.gamemods.mobai.level.feature.FeatureRegistry
 import br.com.gamemods.mobai.level.feature.VanillaFeatureTypes.NETHER_BRIDGE
 import br.com.gamemods.mobai.level.feature.VanillaFeatureTypes.OCEAN_MONUMENT
@@ -9,14 +10,13 @@ import br.com.gamemods.mobai.level.feature.VanillaFeatureTypes.PILLAGER_OUTPOST
 import br.com.gamemods.mobai.level.feature.VanillaFeatureTypes.SWAMP_HUT
 import br.com.gamemods.mobai.level.getBlockId
 import cn.nukkit.block.BlockIds.NETHER_BRICK
-import cn.nukkit.level.Level
 import cn.nukkit.level.chunk.IChunk
 import cn.nukkit.math.Vector3i
 
 internal fun MobAIPlugin.registerVanillaDimensions() {
     logger.debug("Registering dimensions")
-    Level.DIMENSION_OVERWORLD.defaultEntityGenerator = OverworldEntityGenerator()
-    Level.DIMENSION_NETHER.defaultEntityGenerator = NetherEntityGenerator()
+    Dimension.OVERWORLD.defaultEntityGenerator = OverworldEntityGenerator()
+    Dimension.NETHER.defaultEntityGenerator = NetherEntityGenerator()
 }
 
 open class OverworldEntityGenerator: EntityGenerator {

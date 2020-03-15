@@ -6,7 +6,6 @@ import cn.nukkit.math.Vector3i
 interface StructureEntityFeature: EntityFeature {
     val name: String
 
-    fun isInsideStructure(level: Level, pos: Vector3i, approximately: Boolean = false): Boolean {
-        TODO()
-    }
+    //TODO Access extra data provided from GameMods's world conversion tools
+    fun isInsideStructure(level: Level, pos: Vector3i, approximately: Boolean = false): Boolean = false
 }

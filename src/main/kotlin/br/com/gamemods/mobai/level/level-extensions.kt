@@ -25,12 +25,13 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.cast
 import kotlin.reflect.full.safeCast
 
-val Level.height: Int get() = if (dimension == Level.DIMENSION_NETHER) 127 else 255
+val Level.height: Int get() = if (dimensionType.isNether) 127 else 255
 val Level.doMobLoot: Boolean get() = gameRules[GameRules.DO_MOB_LOOT]
 val Level.effectiveSettings get() = LevelSettings.getEffective(this)
 val Level.difficulty get() = effectiveSettings.difficulty.takeIf { it >= 0 } ?: server.difficulty
 val Level.spawnAnimals get() = effectiveSettings.spawnAnimals ?: true
 val Level.spawnMonsters get() = effectiveSettings.spawnMonsters ?: true
+inline val Level.dimensionType get() = Dimension(dimension)
 
 fun Level.findClosestPlayer(filter: TargetFilter, cause: Entity): Player? {
     return findClosestPlayer(filter, cause, cause.position)
@@ -172,16 +173,13 @@ fun Level.isSkyVisible(pos: Vector3f): Boolean {
 
 fun Level.getLoadedChunk(pos: Vector3i): Chunk? = getLoadedChunk(pos.chunkX, pos.chunkZ)
 
-private fun brightnessDelta(dimension: Int) = when (dimension) {
-    Level.DIMENSION_NETHER -> 0.1F
-    else -> 0F
-}
+private fun brightnessDelta(dimension: Dimension) = if (dimension.isNether) 0.1F else 0F
 
-private val lightLevelToBrightness = Array(3) { dimension ->
+private val lightLevelToBrightness = Array(Dimension.MAX.id + 1) { dimension ->
     FloatArray(16) { lightLevel ->
         val scale = lightLevel / 15f
         val brightness = scale / (4f - (3f * scale))
-        NoiseF.lerp(brightnessDelta(dimension), brightness, 1F)
+        NoiseF.lerp(brightnessDelta(Dimension(dimension)), brightness, 1F)
     }
 }
 

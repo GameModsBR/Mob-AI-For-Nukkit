@@ -22,3 +22,9 @@ inline fun <T: Any> T?.requireNotNull(message: String): T = requireNotNull(this)
 inline fun <T: Any> T.nullable(): T? = this
 
 fun <T> Class<T>.safeCast(obj: Any?) = if (isInstance(obj)) cast(obj) else null
+
+inline fun <T: Any> T?.orThrow(exception: () -> Throwable) = this ?: throw exception()
+inline fun <T: Any> T?.orThrow(exception: Throwable) = this ?: throw exception
+
+inline fun <T: Any, reified O> T?.cast() = this as O
+inline fun <T: Any, reified O> T?.castOrNull() = this as? O

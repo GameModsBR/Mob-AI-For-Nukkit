@@ -1,6 +1,7 @@
 package br.com.gamemods.mobai.level.spawning
 
 import br.com.gamemods.mobai.level.Dimension
+import br.com.gamemods.mobai.level.dimensionType
 import cn.nukkit.level.Level
 import cn.nukkit.level.generator.Generator
 import java.util.*
@@ -41,7 +42,7 @@ var Dimension.defaultEntityGenerator: EntityGenerator?
 var Level.entityGenerator
     get() = entityGeneratorByLevel[this]
         ?: generator.entityGenerator
-        ?: dimension.defaultEntityGenerator
+        ?: dimensionType.defaultEntityGenerator
         ?: DefaultEntityGenerator
     set(value) {
         entityGeneratorByLevel[this] = value
