@@ -31,7 +31,9 @@ object FeatureRegistry: Registry {
             if (closed) throw RegistryException("Registration is closed")
             check(type.featureClass.isInstance(feature)) { "The given feature is not valid for the given type. $type, $feature" }
             registry.keys.firstOrNull { it.id == type.id }?.let { registered ->
-                require(registered == type) { "${type.id} is already registered with a different class: ${registered.featureClass}. Tried to register with ${type.featureClass}" }
+                if(registered != type) throw RegistryException(
+                    "${type.id} is already registered with a different class: ${registered.featureClass}. Tried to register with ${type.featureClass}"
+                )
             }
             registry[type] = feature
         }

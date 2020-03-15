@@ -4,8 +4,10 @@ import cn.nukkit.entity.Entity
 import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.level.BlockPosition
 import cn.nukkit.level.Level
+import cn.nukkit.level.chunk.IChunk
 import cn.nukkit.math.Vector3f
 import cn.nukkit.math.Vector3i
+import kotlin.math.sqrt
 
 val ZERO_3F = Vector3f()
 val ZERO_3I = Vector3i()
@@ -73,3 +75,27 @@ fun Entity.distance(other: Entity) = (this as? Vector3f ?: position).distance(ot
 fun Entity.distance(other: BaseEntity) = (this as? Vector3f ?: position).distance(other)
 
 fun BaseEntity.distance(other: Entity) = (this as Vector3f).distance(other)
+
+private fun distanceSquared(fromX: Int, fromZ: Int, toX: Int, toZ: Int): Int {
+    return (fromX - toX).square() + (fromZ - toZ).square()
+}
+
+fun IChunk.distanceSquared(x: Int, z: Int) = distanceSquared(this.x, this.z, x, z)
+fun IChunk.distanceSquared(chunk: IChunk) = distanceSquared(chunk.x, chunk.z)
+fun IChunk.distanceSquared(blockPos: Vector3i) = distanceSquared(blockPos.chunkX, blockPos.chunkZ)
+fun IChunk.distanceSquared(entityPos: Vector3f) = distanceSquared(entityPos.chunkX, entityPos.chunkZ)
+
+fun IChunk.distance(x: Int, z: Int) = sqrt(distanceSquared(x, z).toDouble())
+fun IChunk.distance(chunk: IChunk) = distance(chunk.x, chunk.z)
+fun IChunk.distance(blockPos: Vector3i) = distance(blockPos.chunkX, blockPos.chunkZ)
+fun IChunk.distance(entityPos: Vector3f) = distance(entityPos.chunkX, entityPos.chunkZ)
+
+fun Vector3f.distanceSquared(chunkX: Int, chunkZ: Int) = distanceSquared(this.chunkX, this.chunkZ, chunkX, chunkZ)
+fun Vector3f.distanceSquared(chunk: IChunk) = chunk.distanceSquared(this)
+fun Vector3f.distance(chunkX: Int, chunkZ: Int) = sqrt(distanceSquared(chunkX, chunkZ).toDouble())
+fun Vector3f.distance(chunk: IChunk) = chunk.distance(this)
+
+fun Vector3i.distanceSquared(chunkX: Int, chunkZ: Int) = distanceSquared(this.chunkX, this.chunkZ, chunkX, chunkZ)
+fun Vector3i.distanceSquared(chunk: IChunk) = chunk.distanceSquared(this)
+fun Vector3i.distance(chunkX: Int, chunkZ: Int) = sqrt(distanceSquared(chunkX, chunkZ).toDouble())
+fun Vector3i.distance(chunk: IChunk) = chunk.distance(this)

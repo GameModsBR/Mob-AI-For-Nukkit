@@ -1,31 +1,18 @@
 package br.com.gamemods.mobai.level.feature
 
+import cn.nukkit.level.generator.feature.Feature
 import cn.nukkit.level.generator.feature.generator.BedrockFeature
 import cn.nukkit.level.generator.feature.generator.GroundCoverFeature
-import cn.nukkit.utils.Identifier
-import kotlin.reflect.KProperty
 
 object VanillaFeatureTypes {
-    val SWAMP_HUT = FeatureType("swamp_hut", SwampHutFeature::class.java)
-    val PILLAGER_OUTPOST by structure
-    val OCEAN_MONUMENT by structure
-    val NETHER_BRIDGE by structure
+    val SWAMP_HUT = feature<SwampHutFeature>("swamp_hut")
+    val PILLAGER_OUTPOST = feature<PillagerOutpostFeature>("pillager_outpost")
+    val OCEAN_MONUMENT = feature<OceanMonumentFeature>("ocean_monument")
+    val NETHER_BRIDGE = feature<NetherFortressFeature>("nether_bridge")
 
-    val BEDROCK = FeatureType("nukkit", "bedrock", BedrockFeature::class.java)
-    val GROUND_COVER = FeatureType("nukkit", "ground_cover", GroundCoverFeature::class.java)
+    val BEDROCK = feature<BedrockFeature>("nukkit", "bedrock")
+    val GROUND_COVER = feature<GroundCoverFeature>("nukkit", "ground_cover")
 
-
-
-    // TODO: Abstract this boilerplate, like IdentifierList
-    private inline val structure get() = Type(StructureEntityFeature::class.java)
-    private class Type<F: EntityFeature>(private val fClass: Class<F>) {
-        var type: FeatureType<F>? = null
-        operator fun getValue(thisRef: Any?, property: KProperty<*>): FeatureType<F> {
-            type?.let { return it }
-            val id: Identifier = Identifier.fromString(property.name.toLowerCase())
-            val type = FeatureType(id, fClass)
-            this.type = type
-            return type
-        }
-    }
+    private inline fun <reified F: Feature> feature(name: String) = FeatureType(name, F::class.java)
+    private inline fun <reified F: Feature> feature(namespace: String, name: String) = FeatureType(namespace, name, F::class.java)
 }

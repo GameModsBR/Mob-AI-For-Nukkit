@@ -14,5 +14,6 @@ open class SwampHutFeature: StructureEntityFeature {
         SpawnEntry(EntityTypes.CAT, 1, 1, 1)
     )
 
-    fun isInsideHut(level: Level, levelPos: Vector3i): Boolean = TODO()
+    //TODO Access extra data provided from GameMods's world conversion tools
+    open fun isInsideHut(level: Level, levelPos: Vector3i): Boolean = false
 }

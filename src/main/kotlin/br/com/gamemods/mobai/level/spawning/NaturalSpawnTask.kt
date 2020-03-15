@@ -7,10 +7,7 @@ import br.com.gamemods.mobai.entity.smart.EntityProperties
 import br.com.gamemods.mobai.entity.smart.SmartEntity
 import br.com.gamemods.mobai.entity.smart.logic.type
 import br.com.gamemods.mobai.level.*
-import br.com.gamemods.mobai.math.chunkIndex
-import br.com.gamemods.mobai.math.intCeil
-import br.com.gamemods.mobai.math.isWithinDistance
-import br.com.gamemods.mobai.math.square
+import br.com.gamemods.mobai.math.*
 import cn.nukkit.Server
 import cn.nukkit.block.BlockRail
 import cn.nukkit.entity.Entity
@@ -59,7 +56,12 @@ object NaturalSpawnTask: Runnable {
         }
 
         val spawnLocation = spawnLocation
-        val chunkCount = 0 //TODO this.ticketManager.getLevelCount();
+        val chunkCount = players.values.let { players ->
+            chunks.count { chunk ->
+                if (chunk.players.isNotEmpty()) return@count true
+                players.any { it.distanceSquared(chunk) <= 8 }
+            }
+        }
         val mobCount = getMobCounts()
         val random: Random = ThreadLocalRandom.current()
 
@@ -142,7 +144,7 @@ object NaturalSpawnTask: Runnable {
 
                 val currentChunkIndex = mutable.chunkIndex()
                 if (spawnEntry == null) {
-                    spawnEntry = category.pickRandomSpawnEntry(currentChunk, currentChunkIndex, random)
+                    spawnEntry = category.pickRandomSpawnEntry(currentChunk, currentChunkIndex, mutable, random)
                         ?: continue@type
                     groupSize = spawnEntry.minGroupSize + random.nextInt(1 + spawnEntry.maxGroupSize - spawnEntry.minGroupSize)
                 }
@@ -150,7 +152,7 @@ object NaturalSpawnTask: Runnable {
                 val categoryToSpawn = entityType.category
                 if (categoryToSpawn.isMiscOrUnknown
                     || categoryToSpawn === CREATURE && distanceSquared > 128.square()
-                    || !category.containsSpawnEntry(currentChunk, currentChunkIndex, spawnEntry)) {
+                    || !category.containsSpawnEntry(currentChunk, currentChunkIndex, mutable, spawnEntry)) {
                     continue@group
                 }
 
