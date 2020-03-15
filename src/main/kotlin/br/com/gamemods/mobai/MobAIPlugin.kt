@@ -23,7 +23,6 @@ import cn.nukkit.event.server.RegistriesClosedEvent
 import cn.nukkit.level.Level
 import cn.nukkit.plugin.PluginBase
 import cn.nukkit.utils.ConfigSection
-import cn.nukkit.utils.Identifier
 
 @Suppress("unused")
 class MobAIPlugin: PluginBase() {
@@ -83,11 +82,6 @@ class MobAIPlugin: PluginBase() {
                     val category = nullableEnumValueOf<EntityCategory>(categoryName.toUpperCase()) ?: return@forEach
                     customCategoryCaps[category] = customCap
                 }
-                section.getSection("custom-entity-caps").forEach { fullEntityId, customCap ->
-                    if (customCap !is Int) return@forEach
-                    val entityId = Identifier.fromString(fullEntityId)
-                    customEntityCaps[entityId] = customCap
-                }
             }
         }
     }
@@ -101,11 +95,6 @@ class MobAIPlugin: PluginBase() {
             categoryCaps[category.name.toLowerCase()] = cap
         }
         section["custom-category-caps"] = categoryCaps
-        val entityCaps = ConfigSection()
-        settings.customEntityCaps.forEach { (entityId, cap) ->
-            entityCaps[entityId.toString()] = cap
-        }
-        section["custom-entity-caps"] = entityCaps
     }
 
     private fun loadDefaultLevelSettings() {

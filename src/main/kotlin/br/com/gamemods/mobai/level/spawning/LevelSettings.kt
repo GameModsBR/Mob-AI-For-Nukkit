@@ -4,15 +4,13 @@ import br.com.gamemods.mobai.entity.EntityCategory
 import br.com.gamemods.mobai.level.Dimension
 import br.com.gamemods.mobai.level.dimensionType
 import cn.nukkit.level.Level
-import cn.nukkit.utils.Identifier
 import java.util.*
 
 data class LevelSettings(
     var difficulty: Int = -1,
     var spawnAnimals: Boolean? = null,
     var spawnMonsters: Boolean? = null,
-    var customCategoryCaps: EnumMap<EntityCategory, Int> = EnumMap(EntityCategory::class.java),
-    var customEntityCaps: MutableMap<Identifier, Int> = mutableMapOf()
+    var customCategoryCaps: EnumMap<EntityCategory, Int> = EnumMap(EntityCategory::class.java)
 ) {
     companion object {
         private val loaded = WeakHashMap<Level, LevelSettings>()
