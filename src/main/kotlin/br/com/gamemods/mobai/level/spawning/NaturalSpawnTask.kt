@@ -101,14 +101,14 @@ object NaturalSpawnTask: Runnable {
         }
 
         val randomPos = chunk.run {
-            val x = (x shl 4) + random.nextInt(16)
-            val z = (z shl 4) + random.nextInt(16)
+            val x = random.nextInt(16)
+            val z = random.nextInt(16)
             val surface = getHeightMap(x, z) + 1
             val y = random.nextInt(surface + 1)
             if (y < 1) {
                 return
             }
-            Vector3i(x, y, z)
+            Vector3i((this.x shl 4) + x, y, (this.z shl 4) + z)
         }
 
         val block = chunk.getBlock(randomPos.chunkIndex())

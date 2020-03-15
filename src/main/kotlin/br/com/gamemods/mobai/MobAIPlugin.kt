@@ -45,8 +45,7 @@ class MobAIPlugin: PluginBase() {
 
         server.pluginManager.registerEvents(object : Listener {
             @EventHandler
-            fun onRegistryClose(ev: RegistriesClosedEvent) {
-                assert(!ev.isCancelled)
+            fun onRegistryClose(@Suppress("UNUSED_PARAMETER") ev: RegistriesClosedEvent) {
                 FeatureRegistry.close()
                 HandlerList.unregisterAll(this)
             }

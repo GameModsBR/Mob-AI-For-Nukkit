@@ -41,6 +41,8 @@ interface SplitLogic: EntityProperties {
             )
         }
     }
+
+    fun attribute(id: Int) = attributes.computeIfAbsent(id, Attribute::getAttribute)
 }
 
 inline val SplitLogic.entity get() = this as Entity

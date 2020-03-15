@@ -178,8 +178,6 @@ open class LandPathNodeMaker<E>: PathNodeMaker<E>() where E: SmartEntity, E: Bas
             return pathNode
         }
 
-        check(entity is BaseEntity) { "The entity does not overrides BaseEntity! $entity" }
-
         if ((pathNode == null || pathNode.penalty < 0.0f)
             && maxYStep > 0
             && pathNodeType != PathNodeType.FENCE

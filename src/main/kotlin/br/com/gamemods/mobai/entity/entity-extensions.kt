@@ -11,7 +11,6 @@ import cn.nukkit.block.BlockIds.*
 import cn.nukkit.block.BlockWater
 import cn.nukkit.entity.Attribute
 import cn.nukkit.entity.Entity
-import cn.nukkit.entity.EntityType
 import cn.nukkit.entity.data.EntityFlag
 import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.entity.impl.EntityLiving
@@ -19,7 +18,6 @@ import cn.nukkit.entity.impl.Human
 import cn.nukkit.item.Item
 import cn.nukkit.item.enchantment.Enchantment
 import cn.nukkit.level.BlockPosition
-import cn.nukkit.level.Level
 import cn.nukkit.level.Position
 import cn.nukkit.math.Vector3f
 import cn.nukkit.math.Vector3i
@@ -96,11 +94,10 @@ tailrec fun Entity.pathFindingFavor(pos: BlockPosition): Float {
     }
 }
 
-inline fun SplitLogic.attribute(id: Int, fallback: (SplitLogic, Int) -> Attribute = { _, i -> Attribute.getAttribute(i) })
-        = (this as EntityProperties).attributes[id] ?: fallback(this, id)
-
-inline fun Entity.attribute(id: Int, fallback: (Entity, Int) -> Attribute = { _, i -> Attribute.getAttribute(i) })
-        = (this as? EntityProperties)?.attributes?.get(id) ?: fallback(this, id)
+fun Entity.attribute(id: Int): Attribute {
+    return (this as? SplitLogic)?.attribute(id)
+        ?: (this as? EntityProperties)?.attributes?.get(id) ?: Attribute.getAttribute(id)
+}
 
 tailrec fun Entity.isRiding(entity: Entity): Boolean {
     val vehicle = vehicle ?: return false
@@ -152,10 +149,6 @@ var Attribute.baseValue: Float
         this.defaultValue = value
         this.value = value
     }
-
-fun EntityType<*>.getSpawnCap(level: Level) = level.effectiveSettings.run {
-    customEntityCaps[identifier] ?: category.getEffectiveCap(level)
-}
 
 class Property<V>(private val property: KMutableProperty<V>): ReadWriteProperty<Entity, V> {
     override fun getValue(thisRef: Entity, property: KProperty<*>): V {
