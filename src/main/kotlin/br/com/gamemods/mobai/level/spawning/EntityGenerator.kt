@@ -6,7 +6,12 @@ import cn.nukkit.level.chunk.IChunk
 import cn.nukkit.math.Vector3i
 
 interface EntityGenerator {
-    fun getEntitySpawnList(category: EntityCategory, chunk: IChunk, chunkIndex: Vector3i): List<SpawnEntry> {
+    fun getEntitySpawnList(
+        category: EntityCategory,
+        chunk: IChunk,
+        chunkIndex: Vector3i,
+        levelPos: Vector3i
+    ): List<SpawnEntry> {
         return chunk.getBiome(chunkIndex).getEntitySpawnList(category)
     }
 }

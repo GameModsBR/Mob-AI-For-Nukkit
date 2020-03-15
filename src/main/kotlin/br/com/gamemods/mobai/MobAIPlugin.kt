@@ -4,9 +4,11 @@ import br.com.gamemods.mobai.ExtraAttributeIds.UNDERWATER_MOVEMENT
 import br.com.gamemods.mobai.entity.EntityCategory
 import br.com.gamemods.mobai.entity.attribute.AttributeRegistry.getIdOrRegister
 import br.com.gamemods.mobai.entity.registerEntities
+import br.com.gamemods.mobai.level.feature.registerFeatures
 import br.com.gamemods.mobai.level.spawning.LevelSettings
 import br.com.gamemods.mobai.level.spawning.NaturalSpawnTask
 import br.com.gamemods.mobai.level.spawning.registerVanillaBiomes
+import br.com.gamemods.mobai.level.spawning.registerVanillaDimensions
 import cn.nukkit.event.EventHandler
 import cn.nukkit.event.EventPriority
 import cn.nukkit.event.Listener
@@ -27,7 +29,9 @@ class MobAIPlugin: PluginBase() {
         saveDefaultConfig()
 
         registerAttributes()
+        registerVanillaDimensions()
         registerVanillaBiomes()
+        registerFeatures()
         registerEntities()
 
         server.levels.forEach(this::onLevelLoad)
@@ -41,6 +45,7 @@ class MobAIPlugin: PluginBase() {
     }
 
     private fun registerAttributes() {
+        logger.debug("Registering attributes")
         UNDERWATER_MOVEMENT = getIdOrRegister("minecraft:underwater_movement", 0F, 340282346638528859811704183484516925440.00f, 0.02F)
     }
 

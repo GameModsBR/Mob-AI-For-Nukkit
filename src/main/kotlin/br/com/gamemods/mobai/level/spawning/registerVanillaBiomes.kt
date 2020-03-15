@@ -30,6 +30,7 @@ private fun Biome.addBatAndNormalMonsters() {
 }
 
 internal fun MobAIPlugin.registerVanillaBiomes() {
+    logger.debug("Registering biomes")
     EnumBiome.values().forEach { enum ->
         when (enum) {
             OCEAN -> with(enum.biome) {
