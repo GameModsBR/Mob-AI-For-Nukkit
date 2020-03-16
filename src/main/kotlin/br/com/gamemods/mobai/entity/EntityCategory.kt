@@ -6,7 +6,7 @@ import br.com.gamemods.mobai.level.spawning.LevelSettings
 import cn.nukkit.level.Level
 
 enum class EntityCategory(val spawnCap: Int, val isPeaceful: Boolean, val isAnimal: Boolean) {
-    MONSTER(70, false, true),
+    MONSTER(70, false, false),
     CREATURE(10, true, true),
     AMBIENT(15, true, false),
     WATER_CREATURE(15, true, false),

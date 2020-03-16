@@ -2,6 +2,7 @@
 
 package br.com.gamemods.mobai
 
+import co.aikar.timings.Timing
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
@@ -28,3 +29,23 @@ inline fun <T: Any> T?.orThrow(exception: Throwable) = this ?: throw exception
 
 inline fun <T: Any, reified O> T?.cast() = this as O
 inline fun <T: Any, reified O> T?.castOrNull() = this as? O
+
+inline fun Timing.track(func: () -> Unit) {
+    contract { callsInPlace(func, InvocationKind.EXACTLY_ONCE) }
+    try {
+        startTiming()
+        func()
+    } finally {
+        stopTiming()
+    }
+}
+
+inline fun <R> Timing.runTracking(func: () -> R): R {
+    contract { callsInPlace(func, InvocationKind.EXACTLY_ONCE) }
+    try {
+        startTiming()
+        return func()
+    } finally {
+        stopTiming()
+    }
+}

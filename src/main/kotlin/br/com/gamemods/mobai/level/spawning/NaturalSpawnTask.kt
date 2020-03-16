@@ -1,5 +1,6 @@
 package br.com.gamemods.mobai.level.spawning
 
+import br.com.gamemods.mobai.AiTimings
 import br.com.gamemods.mobai.MobAIPlugin
 import br.com.gamemods.mobai.entity.*
 import br.com.gamemods.mobai.entity.EntityCategory.CREATURE
@@ -8,6 +9,7 @@ import br.com.gamemods.mobai.entity.smart.SmartEntity
 import br.com.gamemods.mobai.entity.smart.logic.type
 import br.com.gamemods.mobai.level.*
 import br.com.gamemods.mobai.math.*
+import br.com.gamemods.mobai.track
 import cn.nukkit.Server
 import cn.nukkit.block.BlockRail
 import cn.nukkit.entity.Entity
@@ -40,7 +42,7 @@ object NaturalSpawnTask: Runnable {
         )
     }
 
-    override fun run() {
+    override fun run() = AiTimings.naturalSpawner.track {
         Server.getInstance().levels.forEach {
             try {
                 it.tickNaturalSpawn()
@@ -55,16 +57,35 @@ object NaturalSpawnTask: Runnable {
             return
         }
 
-        val spawnLocation = spawnLocation
+        //val chunks = chunks
+        //if (chunks.isEmpty()) {
+        //    return
+        //}
+
+        /*val chunkCount = (players.values.takeIf { it.isNotEmpty() } ?: return).asSequence()
+            .flatMap { player ->
+                (-8..8).asSequence().flatMap { x->
+                    (-8..8).asSequence().map { z ->
+                        (player.chunkX + x) to (player.chunkZ + z)
+                    }
+                }
+            }
+            .distinct()
+            .count { (x, z) -> isChunkLoaded(x, z) }*/
         val chunkCount = players.values.let { players ->
             chunks.count { chunk ->
                 if (chunk.players.isNotEmpty()) return@count true
                 players.any { it.distanceSquared(chunk) <= 8 }
             }
         }
+
+        if (chunkCount == 0) {
+            return
+        }
         val mobCount = getMobCounts()
         val random: Random = ThreadLocalRandom.current()
 
+        val spawnLocation = spawnLocation
         chunks.forEach { chunk ->
             val cache = OnDemandChunkManager(this, chunk)
             categories.forEach { category ->

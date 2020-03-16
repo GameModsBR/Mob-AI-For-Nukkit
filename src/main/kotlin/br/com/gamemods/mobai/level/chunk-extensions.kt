@@ -31,8 +31,14 @@ private inline fun <R> Vector3i.ifHasValidHeight(action: () -> R): R? {
 }
 
 fun IChunk.getBlockEntity(pos: Vector3i): BlockEntity? = pos.ifHasValidHeight { getBlockEntity(pos.x, pos.y, pos.z) }
-fun IChunk.getBlockLight(pos: Vector3i) = pos.ifHasValidHeight { getBlockLight(pos.x, pos.y, pos.z).toInt() } ?: 0
-fun IChunk.getSkyLight(pos: Vector3i) = pos.ifHasValidHeight { getSkyLight(pos.x, pos.y, pos.z).toInt() } ?: 0
+fun IChunk.getBlockLight(pos: Vector3i): Int {
+    val y = pos.y.clamp(0, 255)
+    return getSection(y shr 4)?.getBlockLight(pos.x, y and 0xF, pos.z)?.toInt() ?: 0
+}
+fun IChunk.getSkyLight(pos: Vector3i): Int {
+    val y = pos.y.clamp(0, 255)
+    return getSection(y shr 4)?.getSkyLight(pos.x, y and 0xF, pos.z)?.toInt() ?: 0
+}
 
 fun IChunk.getBlockId(pos: Vector3i, layer: Int = 0): Identifier = pos.ifHasValidHeight { getBlockId(pos.x, pos.y, pos.z, layer) } ?: BlockIds.AIR
 fun IChunk.getBlock(pos: Vector3i, layer: Int = 0): Block = pos.ifHasValidHeight { getBlock(pos.x, pos.y, pos.z, layer) } ?: Block.get(BlockIds.AIR, 0, level, (x shl 4) + pos.x, pos.y, (z shl 4) + pos.z, layer)

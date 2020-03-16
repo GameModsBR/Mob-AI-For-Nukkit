@@ -3,6 +3,7 @@ package br.com.gamemods.mobai.level
 import br.com.gamemods.mobai.ai.filter.TargetFilter
 import br.com.gamemods.mobai.level.spawning.LevelSettings
 import br.com.gamemods.mobai.math.chunkIndex
+import br.com.gamemods.mobai.math.clamp
 import br.com.gamemods.mobai.math.intCeil
 import br.com.gamemods.mobai.math.intFloor
 import cn.nukkit.block.Block
@@ -201,7 +202,8 @@ fun ChunkManager.getLight(pos: Vector3i, ambientDarkness: Int): Int {
 
 fun ChunkManager.getBlockSkyLightAt(x: Int, y: Int, z: Int): Int {
     val chunk = getChunk(x shr 4, z shr 4) ?: return 0
-    return chunk.getSkyLight(x, y, z).toInt()
+    val clampedY = y.clamp(0, 255)
+    return chunk.getSection(clampedY shr 4)?.getSkyLight(x and 0xF, clampedY and 0xF, z and 0xF)?.toInt() ?: 0
 }
 
 fun ChunkManager.getBlockSkyLightAt(pos: Vector3i): Int {
