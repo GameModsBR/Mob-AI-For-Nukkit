@@ -1,6 +1,7 @@
 package br.com.gamemods.mobai.level
 
 import br.com.gamemods.mobai.ai.filter.TargetFilter
+import br.com.gamemods.mobai.delegators.custom.customField
 import br.com.gamemods.mobai.level.spawning.LevelSettings
 import br.com.gamemods.mobai.math.chunkIndex
 import br.com.gamemods.mobai.math.clamp
@@ -17,11 +18,9 @@ import cn.nukkit.level.chunk.Chunk
 import cn.nukkit.level.chunk.IChunk
 import cn.nukkit.level.gamerule.GameRules
 import cn.nukkit.level.generator.noise.nukkit.f.NoiseF
-import cn.nukkit.math.AxisAlignedBB
-import cn.nukkit.math.Vector2f
-import cn.nukkit.math.Vector3f
-import cn.nukkit.math.Vector3i
+import cn.nukkit.math.*
 import cn.nukkit.player.Player
+import kotlin.math.cos
 import kotlin.reflect.KClass
 import kotlin.reflect.full.cast
 import kotlin.reflect.full.safeCast
@@ -188,11 +187,11 @@ fun Level.getBrightness(pos: Vector3i): Float {
     return lightLevelToBrightness.getOrNull(dimension)?.getOrNull(getLight(pos)) ?: 0F
 }
 
-fun Level.getLight(pos: Vector3i, ambientDarkness: Int = skyLightSubtracted.intCeil()): Int {
+fun Level.getLight(pos: Vector3i, ambientDarkness: Int = skyLightSubtractedFixed.intCeil()): Int {
     return (this as ChunkManager).getLight(pos, ambientDarkness)
 }
 
-fun ChunkManager.getLight(pos: Vector3i, level: Level) = getLight(pos, level.skyLightSubtracted.intCeil())
+fun ChunkManager.getLight(pos: Vector3i, level: Level) = getLight(pos, level.skyLightSubtractedFixed.intCeil())
 
 fun ChunkManager.getLight(pos: Vector3i, ambientDarkness: Int): Int {
     val chunk = getChunk(pos.chunkX, pos.chunkZ) ?: return 0
@@ -270,4 +269,39 @@ fun ChunkManager.getWaterDamage(blockPos: Vector3i): Int {
     val chunk = getChunk(blockPos).takeIf { it !is EmptyChunk } ?: return -1
     val chunkIndex = blockPos.chunkIndex()
     return chunk.getWaterDamage(chunkIndex)
+}
+
+fun Level.calculateCelestialAngleFixed(time: Int): Float {
+    val i = (time % 24000L).toInt()
+    var angle: Float = (i.toFloat() + 1) / 24000.0f - 0.25f
+
+    if (angle < 0.0f) {
+        ++angle
+    }
+
+    if (angle > 1.0f) {
+        --angle
+    }
+
+    val f1 =
+        1.0f - ((cos(angle.toDouble() * Math.PI) + 1.0) / 2.0).toFloat()
+    angle += (f1 - angle) / 3.0f
+    return angle
+}
+
+var Level.skyLightSubtractedFixed by customField(0F)
+val Level.isDay: Boolean get() {
+    val skyLightSubtractedFixed = skyLightSubtractedFixed
+    return skyLightSubtractedFixed < 4
+}
+inline val Level.isNight get() = !isDay
+fun Level.calculateSkylightSubtractedFixed(): Int {
+    val angle = calculateCelestialAngleFixed(time)
+    var light = 1.0F - (MathHelper.cos(angle * (Math.PI.toFloat() * 2F)) * 2.0F + 0.5F)
+    light = light.clamp(0.0F, 1.0F)
+    light = 1.0F - light
+    light = (light.toDouble() * (1.0 - ((if(isRaining) 1 else 0) * 5.0f).toDouble() / 16.0)).toFloat()
+    light = (light.toDouble() * (1.0 - ((if(isThundering) 1 else 0) * 5.0f).toDouble() / 16.0)).toFloat()
+    light = 1.0F - light
+    return (light * 11.0F).toInt()
 }

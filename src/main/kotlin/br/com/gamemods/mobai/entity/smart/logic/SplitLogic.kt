@@ -105,3 +105,13 @@ inline fun SplitLogic.ifNotOnInit(action: () -> Unit) {
 
     action()
 }
+
+inline fun SplitLogic.ifOnInit(action: () -> Unit) {
+    try {
+        definitions.hashCode()
+        return
+    } catch (_: NullPointerException) {
+    }
+
+    action()
+}

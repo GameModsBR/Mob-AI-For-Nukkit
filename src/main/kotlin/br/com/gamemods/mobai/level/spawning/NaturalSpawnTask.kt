@@ -1,6 +1,5 @@
 package br.com.gamemods.mobai.level.spawning
 
-import br.com.gamemods.mobai.AiTimings
 import br.com.gamemods.mobai.MobAIPlugin
 import br.com.gamemods.mobai.entity.*
 import br.com.gamemods.mobai.entity.EntityCategory.CREATURE
@@ -8,12 +7,15 @@ import br.com.gamemods.mobai.entity.smart.EntityProperties
 import br.com.gamemods.mobai.entity.smart.SmartEntity
 import br.com.gamemods.mobai.entity.smart.logic.type
 import br.com.gamemods.mobai.level.*
-import br.com.gamemods.mobai.math.*
-import br.com.gamemods.mobai.track
+import br.com.gamemods.mobai.math.chunkIndex
+import br.com.gamemods.mobai.math.intCeil
+import br.com.gamemods.mobai.math.isWithinDistance
+import br.com.gamemods.mobai.math.square
 import cn.nukkit.Server
 import cn.nukkit.block.BlockRail
 import cn.nukkit.entity.Entity
 import cn.nukkit.entity.EntityType
+import cn.nukkit.entity.impl.BaseEntity
 import cn.nukkit.level.Level
 import cn.nukkit.level.Position
 import cn.nukkit.level.chunk.Chunk
@@ -26,8 +28,11 @@ import cn.nukkit.registry.EntityRegistry
 import org.slf4j.Logger
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
+import java.util.concurrent.TimeUnit
+import kotlin.system.measureNanoTime
 
 object NaturalSpawnTask: Runnable {
+    private var current: Iterator<String>? = null
     internal lateinit var logger: Logger
     private val categories = EntityCategory.values().asSequence()
         .filterNot { it.isMiscOrUnknown }
@@ -42,27 +47,56 @@ object NaturalSpawnTask: Runnable {
         )
     }
 
-    override fun run() = AiTimings.naturalSpawner.track {
-        Server.getInstance().levels.forEach {
+    override fun run() {
+        //AiTimings.naturalSpawner.track {
+            Server.getInstance().levels.forEach { it.skyLightSubtractedFixed = it.calculateSkylightSubtractedFixed().toFloat() }
+            ticker(TimeUnit.MICROSECONDS.toNanos(5))
+        //}
+    }
+
+    fun ticker(maxNano: Long) {
+        var spent = 0L
+        while (spent < maxNano) {
+            val current = current?.takeIf { it.hasNext() } ?: iterator { tick() }
+            this.current = current
+            val measured = measureNanoTime {
+                if (current.hasNext()) {
+                    current.next()
+                } else {
+                    return
+                }
+            }
+            spent += measured
+        }
+    }
+
+    suspend fun SequenceScope<String>.tick() {
+        val server = Server.getInstance()
+        server.levels.forEach {
             try {
-                it.tickNaturalSpawn()
+                if (server.isLevelLoaded(it.name)) {
+                    tickNaturalSpawn(it)
+                }
             } catch (e: Exception) {
                 logger.error("Failed to tick natural spawn of ${it.name}", e)
             }
         }
     }
 
-    private fun Level.tickNaturalSpawn() {
-        if (!gameRules[GameRules.DO_MOB_SPAWNING] || (!spawnMonsters && !spawnAnimals)) {
+    private val Level.isLoaded get() = server.isLevelLoaded(name)
+    private val IChunk.isLoaded get() = level.getLoadedChunk(x, z) === this
+
+    private suspend fun SequenceScope<String>.tickNaturalSpawn(level: Level) {
+        if (!level.gameRules[GameRules.DO_MOB_SPAWNING] || (!level.spawnMonsters && !level.spawnAnimals)) {
             return
         }
 
-        //val chunks = chunks
-        //if (chunks.isEmpty()) {
-        //    return
-        //}
+        val chunks = level.chunks.associateBy { it.x to it.z }
+        if (chunks.isEmpty()) {
+            return
+        }
 
-        /*val chunkCount = (players.values.takeIf { it.isNotEmpty() } ?: return).asSequence()
+        val chunkCount = (level.players.values.takeIf { it.isNotEmpty() } ?: return).asSequence()
             .flatMap { player ->
                 (-8..8).asSequence().flatMap { x->
                     (-8..8).asSequence().map { z ->
@@ -71,34 +105,46 @@ object NaturalSpawnTask: Runnable {
                 }
             }
             .distinct()
-            .count { (x, z) -> isChunkLoaded(x, z) }*/
-        val chunkCount = players.values.let { players ->
+            .count(chunks::containsKey)
+        /*val chunkCount = players.values.let { players ->
             chunks.count { chunk ->
                 if (chunk.players.isNotEmpty()) return@count true
-                players.any { it.distanceSquared(chunk) <= 8 }
+                players.any { it.isOnline && it.distanceSquared(chunk) <= 8 }
             }
-        }
+        }*/
 
         if (chunkCount == 0) {
             return
         }
-        val mobCount = getMobCounts()
+
+        yield("Level ${level.name} initialization")
+        if (!level.isLoaded) return
+
+        val mobCount = level.getMobCounts()
+
         val random: Random = ThreadLocalRandom.current()
 
-        val spawnLocation = spawnLocation
-        chunks.forEach { chunk ->
-            val cache = OnDemandChunkManager(this, chunk)
-            categories.forEach { category ->
-                try {
-                    cache.tickCategory(this, category, spawnLocation, chunkCount, mobCount, random, chunk)
-                } catch (e: Exception) {
-                    logger.error("Failed to tick the natural spawn category $category of $name", e)
+        val spawnLocation = level.spawnLocation
+        chunks.values.forEach { chunk ->
+            if (!level.isLoaded) return
+            if (chunk.isLoaded) {
+                val cache = OnDemandChunkManager(level, chunk)
+                categories.forEach { category ->
+                    try {
+                        tickCategory(cache, level, category, spawnLocation, chunkCount, mobCount, random, chunk)
+                    } catch (e: Exception) {
+                        logger.error("Failed to tick the natural spawn category $category of ${level.name}", e)
+                    }
                 }
+                yield("Finished chunk ${chunk.report}")
             }
         }
     }
 
-    private fun OnDemandChunkManager.tickCategory(
+    private val Chunk.report get() = "chunk at ${level.name}"
+
+    private suspend fun SequenceScope<String>.tickCategory(
+        chunkManager: OnDemandChunkManager,
         level: Level,
         category: EntityCategory,
         spawnLocation: Position,
@@ -110,10 +156,14 @@ object NaturalSpawnTask: Runnable {
         with(level) {
             if (category.isPeaceful && !spawnAnimals
                 || !category.isPeaceful && !spawnMonsters
-                || category.isAnimal && !isDaytime) {
+                || category.isAnimal && isNight
+            ) {
                 return
             }
         }
+
+        yield("Category $category initial validation for $chunk")
+        if (!level.isLoaded || !chunk.isLoaded) return
 
         val effectiveMobCap = category.getEffectiveCap(level) * chunkCount / 17.square()
         val categoryCount = mobCount.byCategory[category] ?: 0
@@ -133,23 +183,37 @@ object NaturalSpawnTask: Runnable {
         }
 
         val block = chunk.getBlock(randomPos.chunkIndex())
-        if (block.isNormalBlock) {
-            return
+        try {
+            if (block.isNormalBlock) {
+                return
+            }
+        } finally {
+            yield("Defined random position for $category at $chunk")
+            if (!level.isLoaded || !chunk.isLoaded) return
         }
 
         var totalCount = 0
         val mutable = block.asVector3i()
         type@ for (i in 0..2) {
+            yield("Starting type spawn $i for $category at $chunk")
+            if (!level.isLoaded || !chunk.isLoaded) return
             var spawnEntry: SpawnEntry? = null
             var groupData: Any? = null
             var spawnCount = 0
             var groupSize = (random.nextDouble() * 4).intCeil()
             var currentTry = 0
             group@ while (currentTry++ < groupSize) {
+                yield("Starting group spawn $currentTry for entity ${spawnEntry?.type} $i for $category at $chunk")
+                if (!level.isLoaded || !chunk.isLoaded) return
+
                 mutable.x += random.nextInt(6) - random.nextInt(6)
                 mutable.z += random.nextInt(6) - random.nextInt(6)
                 val planePos = Vector2f(mutable.x + 0.5, mutable.z + 0.5)
                 val closestPlayer = level.findPlayers(planePos).closest()?.first ?: continue@group
+
+                yield("Scanned for closest player at try $currentTry for entity ${spawnEntry?.type} $i for $category at $chunk")
+                if (!level.isLoaded || !chunk.isLoaded) return
+
                 val tridimensionalPos = Vector3f(planePos.x, mutable.y.toDouble(), planePos.y)
                 val distanceSquared = closestPlayer.distanceSquared(tridimensionalPos)
                 if (distanceSquared <= 24.square()
@@ -160,7 +224,7 @@ object NaturalSpawnTask: Runnable {
                 val currentChunk = if (mutable.chunkX == chunk.x && mutable.chunkZ == chunk.z) {
                     chunk
                 } else {
-                    getChunk(mutable)?.takeIf { it.isGenerated } ?: continue@group
+                    chunkManager.getChunk(mutable)?.takeIf { it.isGenerated } ?: continue@group
                 }
 
                 val currentChunkIndex = mutable.chunkIndex()
@@ -169,6 +233,10 @@ object NaturalSpawnTask: Runnable {
                         ?: continue@type
                     groupSize = spawnEntry.minGroupSize + random.nextInt(1 + spawnEntry.maxGroupSize - spawnEntry.minGroupSize)
                 }
+
+                yield("Defined random entity at $currentTry for entity ${spawnEntry.type} $i for $category at $chunk")
+                if (!level.isLoaded || !chunk.isLoaded) return
+
                 val entityType = spawnEntry.type
                 val categoryToSpawn = entityType.category
                 if (categoryToSpawn.isMiscOrUnknown
@@ -181,40 +249,52 @@ object NaturalSpawnTask: Runnable {
                     continue@group
                 }
 
-                if(!entityType.spawnCondition.canSpawn(entityType, level, this, SpawnType.NATURAL, mutable, random)) {
+                if(!entityType.spawnCondition.canSpawn(entityType, level,
+                        chunkManager, SpawnType.NATURAL, mutable, random)) {
                     continue@group
                 }
 
-                //TODO !serverWorld.doesNotCollide(entityType.createSimpleBoundingBox(f, k, g))
-                val entity = try {
-                    EntityRegistry.get().newEntity(
-                        entityType,
-                        MobAIPlugin.INSTANCE,
-                        currentChunk as? Chunk ?: level.getChunk(currentChunk.x, currentChunk.z),
-                        Entity.getDefaultNBT(tridimensionalPos, null, random.nextFloat() * 360, 0F)
-                    ) ?: continue@type
-                } catch (e: Exception) {
-                    logger.error("Failed to spawn entity $entityType", e)
-                    return
-                }
+                yield("Final verifications at $currentTry for entity ${spawnEntry.type} $i for $category at $chunk")
+                if (!level.isLoaded || !chunk.isLoaded) return
 
-                if (entity is SmartEntity) {
-                    if (distanceSquared > 128.square() && entity.canDespawnImmediately(distanceSquared)
-                        || !entity.canSpawn(SpawnType.NATURAL)
-                        || !entity.canSpawn()) {
-                        entity.close()
-                        continue@group
+                try {
+                    //TODO !serverWorld.doesNotCollide(entityType.createSimpleBoundingBox(f, k, g))
+                    val entity = try {
+                        EntityRegistry.get().newEntity(
+                            entityType,
+                            MobAIPlugin.INSTANCE,
+                            currentChunk as? Chunk ?: level.getChunk(currentChunk.x, currentChunk.z),
+                            Entity.getDefaultNBT(tridimensionalPos, null, random.nextFloat() * 360, 0F)
+                        ) ?: continue@type
+                    } catch (e: Exception) {
+                        logger.error("Failed to spawn entity $entityType", e)
+                        return
                     }
-                    groupData = entity.postSpawn(SpawnType.NATURAL, groupData, random)
-                }
-                spawnCount++
-                totalCount++
-                entity.spawnToAll()
-                if (totalCount >= ((entity as? EntityProperties)?.limitPerChunk ?: 4)) {
-                    return
-                }
-                if ((entity as? SmartEntity)?.spawnsTooManyForEachTry(spawnCount) != false) {
-                    continue@type
+
+                    if (entity is SmartEntity) {
+                        if (distanceSquared > 128.square() && entity.canDespawnImmediately(distanceSquared)
+                            || !entity.canSpawn(SpawnType.NATURAL)
+                            || !entity.canSpawn()) {
+                            entity.close()
+                            continue@group
+                        }
+                        groupData = entity.postSpawn(SpawnType.NATURAL, groupData, random)
+                    }
+                    if (entity is BaseEntity) {
+                        entity.scheduleUpdate()
+                    }
+                    spawnCount++
+                    totalCount++
+                    entity.spawnToAll()
+                    if (totalCount >= ((entity as? EntityProperties)?.limitPerChunk ?: 4)) {
+                        return
+                    }
+                    if ((entity as? SmartEntity)?.spawnsTooManyForEachTry(spawnCount) != false) {
+                        continue@type
+                    }
+                } finally {
+                    yield("Finalized $currentTry for entity ${spawnEntry.type} $i for $category at $chunk")
+                    if (!level.isLoaded || !chunk.isLoaded) return
                 }
             }
         }

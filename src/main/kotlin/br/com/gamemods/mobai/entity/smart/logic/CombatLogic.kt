@@ -69,6 +69,7 @@ interface CombatLogic: SplitLogic {
     }}
 
     fun kill() {
+        ifOnInit { base.close(); return }
         if (!level.doMobLoot) {
             return
         }

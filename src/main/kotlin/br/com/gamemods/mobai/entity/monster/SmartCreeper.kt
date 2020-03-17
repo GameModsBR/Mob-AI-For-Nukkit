@@ -11,6 +11,7 @@ import br.com.gamemods.mobai.entity.smart.EntityProperties
 import br.com.gamemods.mobai.entity.smart.EntityPropertyStorage
 import br.com.gamemods.mobai.entity.smart.SmartMonster
 import br.com.gamemods.mobai.entity.smart.logic.ifNotOnInit
+import br.com.gamemods.mobai.entity.smart.logic.ifOnInit
 import br.com.gamemods.mobai.math.clamp
 import cn.nukkit.entity.Entity
 import cn.nukkit.entity.EntityType
@@ -201,6 +202,7 @@ class SmartCreeper(type: EntityType<Creeper>, chunk: Chunk, nbt: CompoundTag)
     }
 
     override fun getDrops(): Array<Item> {
+        ifOnInit { return emptyArray() }
         val attacker = attacker
         val drops = mutableListOf<Item>()
         val random = random
