@@ -8,6 +8,7 @@ import br.com.gamemods.mobai.entity.smart.EntityProperties
 import br.com.gamemods.mobai.entity.smart.EntityPropertyStorage
 import br.com.gamemods.mobai.entity.smart.SmartAnimal
 import br.com.gamemods.mobai.entity.smart.logic.Breedable
+import br.com.gamemods.mobai.entity.smart.logic.ifOnInit
 import br.com.gamemods.mobai.level.SimpleSound
 import cn.nukkit.entity.Entity
 import cn.nukkit.entity.EntityType
@@ -70,6 +71,7 @@ class SmartPig(type: EntityType<Pig>, chunk: Chunk, tag: CompoundTag)
     override fun isBreedingItem(item: Item) = super<EntityPig>.isBreedingItem(item)
 
     override fun getDrops(): Array<Item> {
+        ifOnInit { return emptyArray() }
         val random = random
         val looting = attacker?.lootingLevel ?: 0
         val drops = mutableListOf<Item>(Item.get(

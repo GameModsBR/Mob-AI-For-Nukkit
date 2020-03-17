@@ -8,22 +8,22 @@ import cn.nukkit.level.chunk.Chunk
 import cn.nukkit.level.chunk.IChunk
 import cn.nukkit.utils.Identifier
 
-class OnDemandChunkManager(val level: Level, vararg initialChunks: Chunk): ChunkManager {
-    private val cache: MutableMap<Long, Chunk> = LinkedHashMap(initialChunks.size.takeIf { it > 0 } ?: 1)
+class OnDemandChunkManager(val level: Level, vararg initialChunks: IChunk): ChunkManager {
+    private val cache: MutableMap<Long, IChunk> = LinkedHashMap((initialChunks.size.takeIf { it > 0 } ?: 1) + 1)
     init {
         initialChunks.forEach(::plusAssign)
     }
 
-    private fun validateChunk(chunk: Chunk) {
+    private fun validateChunk(chunk: IChunk) {
         check(chunk.level === level) { "The chunk ${chunk.x}x${chunk.z} is from a different level! (From: ${chunk.level.id}, Expected: ${level.id}" }
     }
 
-    operator fun plusAssign(chunk: Chunk) {
+    operator fun plusAssign(chunk: IChunk) {
         validateChunk(chunk)
         cache[Chunk.key(chunk.x, chunk.z)] = chunk
     }
 
-    operator fun minusAssign(chunk: Chunk) {
+    operator fun minusAssign(chunk: IChunk) {
         validateChunk(chunk)
         cache -= Chunk.key(chunk.x, chunk.z)
     }
@@ -92,7 +92,7 @@ class OnDemandChunkManager(val level: Level, vararg initialChunks: Chunk): Chunk
 
     private fun chunkKeyFromBlock(x: Int, z: Int) = Chunk.key(x shr 4, z shr 4)
 
-    private fun getChunk(chunkKey: Long): IChunk = cache.computeIfAbsent(chunkKey, level::getChunk)
+    private fun getChunk(chunkKey: Long): IChunk = cache.computeIfAbsent(chunkKey) { CachingChunk(level.getChunk(chunkKey)) }
 
     override fun getSeed() = level.seed
 }
