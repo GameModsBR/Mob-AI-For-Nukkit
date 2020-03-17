@@ -272,8 +272,8 @@ fun ChunkManager.getWaterDamage(blockPos: Vector3i): Int {
 }
 
 fun Level.calculateCelestialAngleFixed(time: Int): Float {
-    val i = (time % 24000L).toInt()
-    var angle: Float = (i.toFloat() + 1) / 24000.0f - 0.25f
+    val i = time % 24000
+    var angle: Float = (i + 1f) / 24000.0f - 0.25f
 
     if (angle < 0.0f) {
         ++angle
@@ -283,9 +283,8 @@ fun Level.calculateCelestialAngleFixed(time: Int): Float {
         --angle
     }
 
-    val f1 =
-        1.0f - ((cos(angle.toDouble() * Math.PI) + 1.0) / 2.0).toFloat()
-    angle += (f1 - angle) / 3.0f
+    val f1 = 1.0 - (cos(angle.toDouble() * Math.PI) + 1.0) / 2.0
+    angle += (f1.toFloat() - angle) / 3.0f
     return angle
 }
 
@@ -300,8 +299,8 @@ fun Level.calculateSkylightSubtractedFixed(): Int {
     var light = 1.0F - (MathHelper.cos(angle * (Math.PI.toFloat() * 2F)) * 2.0F + 0.5F)
     light = light.clamp(0.0F, 1.0F)
     light = 1.0F - light
-    light = (light.toDouble() * (1.0 - ((if(isRaining) 1 else 0) * 5.0f).toDouble() / 16.0)).toFloat()
-    light = (light.toDouble() * (1.0 - ((if(isThundering) 1 else 0) * 5.0f).toDouble() / 16.0)).toFloat()
+    light *= 1.0f - (if (isRaining) 1f else 0f) * 5.0f / 16.0f
+    light *= 1.0f - (if (isThundering) 1f else 0f) * 5.0f / 16.0f
     light = 1.0F - light
     return (light * 11.0F).toInt()
 }
