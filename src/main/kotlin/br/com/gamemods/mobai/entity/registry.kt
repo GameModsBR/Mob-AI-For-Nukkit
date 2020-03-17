@@ -106,6 +106,8 @@ enum class HeightMapType {
     MOTION_BLOCKING_NO_LEAVES
 }
 
+@Deprecated("In favor of Nukkit's SpawnReason",
+    replaceWith = ReplaceWith("SpawnReason", "cn.nukkit.event.entity.CreatureSpawnEvent.SpawnReason"))
 enum class SpawnType {
     NATURAL,
     CHUNK_GENERATION,

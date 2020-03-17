@@ -8,10 +8,8 @@ import br.com.gamemods.mobai.level.Dimension
 import br.com.gamemods.mobai.level.dimensionType
 import br.com.gamemods.mobai.level.feature.FeatureRegistry
 import br.com.gamemods.mobai.level.feature.registerFeatures
-import br.com.gamemods.mobai.level.spawning.LevelSettings
-import br.com.gamemods.mobai.level.spawning.NaturalSpawnTask
-import br.com.gamemods.mobai.level.spawning.registerVanillaBiomes
-import br.com.gamemods.mobai.level.spawning.registerVanillaDimensions
+import br.com.gamemods.mobai.level.populators
+import br.com.gamemods.mobai.level.spawning.*
 import cn.nukkit.event.EventHandler
 import cn.nukkit.event.EventPriority
 import cn.nukkit.event.HandlerList
@@ -21,6 +19,8 @@ import cn.nukkit.event.level.LevelSaveEvent
 import cn.nukkit.event.level.LevelUnloadEvent
 import cn.nukkit.event.server.RegistriesClosedEvent
 import cn.nukkit.level.Level
+import cn.nukkit.level.generator.NetherGenerator
+import cn.nukkit.level.generator.NormalGenerator
 import cn.nukkit.plugin.PluginBase
 import cn.nukkit.utils.ConfigSection
 
@@ -48,6 +48,17 @@ class MobAIPlugin: PluginBase() {
             fun onRegistryClose(@Suppress("UNUSED_PARAMETER") ev: RegistriesClosedEvent) {
                 FeatureRegistry.close()
                 HandlerList.unregisterAll(this)
+            }
+        }, this)
+
+        server.pluginManager.registerEvents(object : Listener {
+            @EventHandler(priority = EventPriority.LOW)
+            fun onLevelLoad(ev: LevelLoadEvent) {
+                val populator = PopulatorEntity()
+                when (val generator = ev.level.generator) {
+                    is NormalGenerator -> generator.populators = generator.populators + populator
+                    is NetherGenerator -> generator.populators += populator
+                }
             }
         }, this)
     }

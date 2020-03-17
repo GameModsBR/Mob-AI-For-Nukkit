@@ -1,6 +1,5 @@
 package br.com.gamemods.mobai.level.spawning
 
-import br.com.gamemods.mobai.MobAIPlugin
 import br.com.gamemods.mobai.entity.*
 import br.com.gamemods.mobai.entity.EntityCategory.CREATURE
 import br.com.gamemods.mobai.entity.smart.EntityProperties
@@ -16,6 +15,8 @@ import cn.nukkit.block.BlockRail
 import cn.nukkit.entity.Entity
 import cn.nukkit.entity.EntityType
 import cn.nukkit.entity.impl.BaseEntity
+import cn.nukkit.event.entity.CreatureSpawnEvent
+import cn.nukkit.event.entity.CreatureSpawnEvent.SpawnReason
 import cn.nukkit.level.Level
 import cn.nukkit.level.Position
 import cn.nukkit.level.chunk.Chunk
@@ -138,6 +139,28 @@ object NaturalSpawnTask: Runnable {
             return
         }
 
+        populate(chunkManager, level, category, spawnLocation, random, chunk, SpawnReason.NATURAL, SpawnType.NATURAL)
+    }
+
+    fun populate(
+        chunkManager: OnDemandChunkManager,
+        level: Level,
+        category: EntityCategory,
+        spawnLocation: Position,
+        random: Random,
+        chunk: CachingChunk,
+        spawnReason: SpawnReason,
+        spawnType: SpawnType
+    ) {
+        with(level) {
+            if (category.isPeaceful && !spawnAnimals
+                || !category.isPeaceful && !spawnMonsters
+                || category.isAnimal && isNight
+            ) {
+                return
+            }
+        }
+
         val randomPos = chunk.run {
             val x = random.nextInt(16)
             val z = random.nextInt(16)
@@ -169,7 +192,7 @@ object NaturalSpawnTask: Runnable {
                 val planePos = Vector2f(mutable.x + 0.5, mutable.z + 0.5)
                 val closestPlayer = level.findPlayers(planePos).closest()?.first ?: continue@group
 
-                val tridimensionalPos = Vector3f(planePos.x, mutable.y.toDouble(), planePos.y)
+                val tridimensionalPos = Vector3f(planePos.x, mutable.y.toDouble() + 0.0001, planePos.y)
                 val distanceSquared = closestPlayer.distanceSquared(tridimensionalPos)
                 if (distanceSquared <= 24.square()
                     || spawnLocation.isWithinDistance(tridimensionalPos, 24.0)) {
@@ -202,38 +225,55 @@ object NaturalSpawnTask: Runnable {
                 }
 
                 if(!entityType.spawnCondition.canSpawn(entityType, level,
-                        chunkManager, SpawnType.NATURAL, mutable, random)) {
+                        chunkManager, spawnType, mutable, random)) {
                     continue@group
                 }
 
                 //TODO !serverWorld.doesNotCollide(entityType.createSimpleBoundingBox(f, k, g))
                 val entity = try {
+                    val nbt = Entity.getDefaultNBT(tridimensionalPos, null, random.nextFloat() * 360, 0F)
+
+                    val ev = CreatureSpawnEvent(
+                        EntityRegistry.get().getRuntimeType(entityType),
+                        Position(tridimensionalPos.x, tridimensionalPos.y, tridimensionalPos.z, level),
+                        nbt,
+                        spawnReason
+                    )
+                    level.server.pluginManager.callEvent(ev)
+
+                    if (ev.isCancelled) {
+                        continue@type
+                    }
+
                     EntityRegistry.get().newEntity(
                         entityType,
-                        MobAIPlugin.INSTANCE,
                         currentChunk.parent as? Chunk ?: level.getChunk(currentChunk.x, currentChunk.z),
-                        Entity.getDefaultNBT(tridimensionalPos, null, random.nextFloat() * 360, 0F)
+                        nbt
                     ) ?: continue@type
                 } catch (e: Exception) {
                     logger.error("Failed to spawn entity $entityType", e)
                     return
                 }
 
+                logger.info("${entity.type.identifier} spawned at ${entity.x} ${entity.y} ${entity.z}")
+
                 if (entity is SmartEntity) {
                     if (distanceSquared > 128.square() && entity.canDespawnImmediately(distanceSquared)
-                        || !entity.canSpawn(SpawnType.NATURAL)
+                        || !entity.canSpawn(spawnType)
                         || !entity.canSpawn()) {
+                        logger.info("${entity.type.identifier} spawn cancelled")
                         entity.close()
                         continue@group
                     }
-                    groupData = entity.postSpawn(SpawnType.NATURAL, groupData, random)
-                }
-                if (entity is BaseEntity) {
-                    entity.scheduleUpdate()
+                    groupData = entity.postSpawn(spawnType, groupData, random)
                 }
                 spawnCount++
                 totalCount++
                 entity.spawnToAll()
+                if (entity is BaseEntity) {
+                    entity.scheduleUpdate()
+                    level.server.scheduler.scheduleTask(null) { entity.scheduleUpdate() }
+                }
                 if (totalCount >= ((entity as? EntityProperties)?.limitPerChunk ?: 4)) {
                     return
                 }
