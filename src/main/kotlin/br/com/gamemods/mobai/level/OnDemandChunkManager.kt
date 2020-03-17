@@ -36,14 +36,14 @@ class OnDemandChunkManager(val level: Level, vararg initialChunks: Chunk): Chunk
         if (y !in 0..255) {
             return BlockIds.AIR
         }
-        return getChunkFromBlock(x, z).getBlockId(x, y, z, layer)
+        return getChunkFromBlock(x, z).getBlockId(x.index, y, z.index, layer)
     }
 
     override fun getBlockAt(x: Int, y: Int, z: Int, layer: Int): Block {
         if (y !in 0..255) {
             return Block.get(BlockIds.AIR, 0, level, x, y, z, layer)
         }
-        return getChunkFromBlock(x, z).getBlock(x, y, z, layer)
+        return getChunkFromBlock(x, z).getBlock(x.index, y, z.index, layer)
     }
 
     override fun setBlockRuntimeIdUnsafe(x: Int, y: Int, z: Int, layer: Int, runtimeId: Int) {
